@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torchvision.models as models
 from torch.nn.utils.rnn import pack_padded_sequence
 
@@ -10,6 +11,7 @@ class EncoderCNN(nn.Module):
         super(EncoderCNN, self).__init__()
         resnet = models.resnet152(pretrained=True)
         modules = list(resnet.children())[:-1]      # delete the last fc layer.
+        self.last_layer = list(resnet.children())[-1]    # input features to this layer
         self.resnet = nn.Sequential(*modules)
         self.linear = nn.Linear(resnet.fc.in_features, embed_size)
         self.bn = nn.BatchNorm1d(embed_size, momentum=0.01)
@@ -19,8 +21,9 @@ class EncoderCNN(nn.Module):
         with torch.no_grad():
             features = self.resnet(images)
         features = features.reshape(features.size(0), -1)
+        classes = self.last_layer(features)
         features = self.bn(self.linear(features))
-        return features
+        return features, classes
 
 
 class DecoderRNN(nn.Module):
