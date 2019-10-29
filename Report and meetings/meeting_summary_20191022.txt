@@ -1,0 +1,6 @@
+Meeting summary 2019.10.22
+Due to the difficulty and the uncertain result of using task2vec/model2vec, we change the approach to using two head CNN to visualize computer vision and image captions generated from the model over steps and improve the model base on the observation.
+The work is divided into three phases, each phase correspond to each work progress presentation:
+Phase 1: finish the two head CNN and implement ¡°prediction difference analysis¡±.
+Phase 2: analysis the result, address the problem and design the solution.
+Phase 3: visualize the result after implementing the proposed solution.

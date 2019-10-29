@@ -1,0 +1,15 @@
+To run the DeepVis-PredDiff repo, there are few steps needed to be done
+1. clone the repo " git clone https://github.com/lmzintgraf/DeepVis-PredDiff.git" and download googlenet from "http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel"
+2. create python2 environment "conda create --name py2 python=2.7" and activate "conda activate py2"
+3. install caffe-gpu "conda install -c anaconda caffe-gpu" and "conda install -y glog leveldb" to debug potential error
+4. change the line46 to "o = (0.5*np.array([np_img.shape[0]-img_dim[0], np_img.shape[1]-img_dim[1]])).astype(np.int)" to resolve the issue #3 
+5. run the code "python experiments_imagenet.py", it takes the analyzes googlenet using the images in "/data". It takes around 11.5 minutes for each analysis.
+
+I made a code using argparse module so we can change the analyzed model just by entering different input:
+-i: netname
+-k: window size 
+-l: padding size
+
+Window size and padding size are important for conditional sampling (written in paper).
+
+But to use the code with the defaulted code, we need to change our trained model to caffemodel and create ".prototxt" and ".caffemodel" files.
