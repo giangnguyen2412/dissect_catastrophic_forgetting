@@ -22,8 +22,10 @@ class EncoderCNN(nn.Module):
             features = self.resnet(images)
         features = features.reshape(features.size(0), -1)
         classes = self.last_layer(features)
-        features = self.bn(self.linear(features))
-        return features, classes
+        ps = torch.exp(classes)
+        topk, topclass = ps.topk(1, dim=1)
+        features = self.bn(self.linear(features))   # batch_size, predicted labels
+        return features, topk, topclass
 
 
 class DecoderRNN(nn.Module):
