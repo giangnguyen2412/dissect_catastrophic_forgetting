@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
 from torch.nn.utils.rnn import pack_padded_sequence
+import copy
 
 
 class EncoderCNN(nn.Module):
@@ -21,11 +22,12 @@ class EncoderCNN(nn.Module):
         with torch.no_grad():
             features = self.resnet(images)
         features = features.reshape(features.size(0), -1)
-        classes = self.last_layer(features)
+        cloned_features = copy.deepcopy(features)
+        classes = self.last_layer(cloned_features)
         ps = torch.exp(classes)
         topk, topclass = ps.topk(1, dim=1)
         features = self.bn(self.linear(features))   # batch_size, predicted labels
-        return features, topk, topclass
+        return features
 
 
 class DecoderRNN(nn.Module):
