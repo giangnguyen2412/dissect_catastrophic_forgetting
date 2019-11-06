@@ -166,7 +166,7 @@ def train(epoch, train_loader, encoder, decoder, criterion, optimizer, first_tra
         targets = pack_padded_sequence(captions, lengths, batch_first=True)[0]
 
         # Forward, backward and optimize
-        features = encoder(images)
+        features, _, _ = encoder(images)
         outputs = decoder(features, captions, lengths)
         loss = criterion(outputs, targets)
         decoder.zero_grad()
@@ -213,7 +213,7 @@ def validate(epoch, val_loader, encoder, decoder, criterion):
         targets = pack_padded_sequence(captions, lengths, batch_first=True)[0]
 
         # Forward, backward and optimize
-        features = encoder(images)
+        features, _, _ = encoder(images)
         outputs = decoder(features, captions, lengths)
         loss = criterion(outputs, targets)
         loss_over_validation += loss.item()

@@ -83,7 +83,7 @@ def main(args):
     image_tensor = image.to(device)
     
     # Generate an caption from the image
-    feature = encoder(image_tensor)
+    feature, topk, topclass = encoder(image_tensor)
     sampled_ids = decoder.sample(feature)
     sampled_ids = sampled_ids[0].cpu().numpy()  # (1, max_seq_length) -> (max_seq_length)
     
@@ -99,7 +99,9 @@ def main(args):
     sentence = sentence.replace('<end>', '')
     
     # Print out the image and the generated caption
-    print (sentence)
+    print(sentence)
+    print(topk)
+    print(topclass)
     # image = Image.open(args.image)
     visualize(args.image, sentence)
     # plt.imshow(np.asarray(image))

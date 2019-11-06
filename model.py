@@ -27,7 +27,7 @@ class EncoderCNN(nn.Module):
         ps = torch.exp(classes)
         topk, topclass = ps.topk(1, dim=1)
         features = self.bn(self.linear(features))   # batch_size, predicted labels
-        return features
+        return features, topk, topclass
 
 
 class DecoderRNN(nn.Module):
