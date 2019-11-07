@@ -1,0 +1,6 @@
+# Professor_Comment_on_1st_progress report
+- Put reference paper of DeepViz
+- Still 3rd type of project
+- Baseline solutions: I need to add Fine-tuning approach before we adding any methods 
+to defy catastrophic forgetting to see our methods work or not
+- Experimental setup is not challenging now, please remove it from presentation
