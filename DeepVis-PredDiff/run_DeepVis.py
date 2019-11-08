@@ -139,7 +139,7 @@ for test_idx in test_indices:
     
     # plot and save the results
     utlV.plot_results(x_test, x_test_im, sensMap, pred_diff[0], target_func, classnames, test_idx, save_path)
-#     np.savez(save_path, *pred_diff)
+    np.savez(save_path, *pred_diff)
     print "--- Total computation took {:.4f} minutes ---".format((time.time() - start_time)/60)
     
         
