@@ -76,6 +76,11 @@ def main(args):
         encoder = EncoderCNN(args.embed_size).to(device)
         decoder = DecoderRNN(args.embed_size, args.hidden_size, len(vocab), args.num_layers).to(device)
 
+    if args.freeze_enc:
+        args.task_name += '_freeze_enc'
+    elif args.freeze_dec:
+        args.task_name += '_freeze_dec'
+
     if args.task_type == 'seq':
         args.model_path = cfg['model']['model_path_format'].format(args.task_type, args.task_name + '_seq', 'models')
         args.cpkt_path = cfg['model']['model_path_format'].format(args.task_type, args.task_name + '_seq', 'best')
@@ -85,6 +90,16 @@ def main(args):
 
     # Create model directory
     make_dir(args.model_path)
+
+    if args.freeze_enc:
+        print("Freeze encoder technique!")
+        for param in encoder.parameters():
+            param.requires_grad_(False)
+
+    if args.freeze_dec:
+        print("Freeze decoder technique!")
+        for param in decoder.lstm.parameters():
+            param.requires_grad_(False)
 
     train_loader = get_loader(root=train_root, json=train_json, vocab=vocab,
                               transform=transform, batch_size=args.batch_size,
