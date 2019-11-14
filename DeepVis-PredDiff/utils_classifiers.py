@@ -20,25 +20,24 @@ import torchvision.models as models
 import torch
 
 import torch.nn.functional as F
-import torchvision.models as models
 from torch.nn.utils.rnn import pack_padded_sequence
 import copy
 
 
 class EncoderCNN(nn.Module):
-    def __init__(self):
-        """Load the pretrained ResNet-152 and replace top fc layer."""
+    def __init__(self, vis_layer):
         super(EncoderCNN, self).__init__()
         resnet = models.resnet50(pretrained=True)
         modules = list(resnet.children())[:-1]      # delete the last fc layer.
-	first_conv = list(resnet.children())[:6]
+	for i, layer in enumerate(modules):
+	    print ('layer', i, layer)
+	first_conv = list(resnet.children())[:vis_layer]
 	self.last_layer = list(resnet.children())[-1]    # input features to this layer
 	self.resnet_conv1 = nn.Sequential(*first_conv)
         self.resnet = nn.Sequential(*modules)
         self.linear = nn.Linear(resnet.fc.in_features, 256)
 	self.bn = nn.BatchNorm1d(256, momentum = 0.01)       
     def forward(self, images):
-        """Extract feature vectors from input images."""
         with torch.no_grad():
             features = self.resnet(images)
 	    first_feat = self.resnet_conv1(images)
@@ -48,11 +47,10 @@ class EncoderCNN(nn.Module):
     
 
 
-def get_pytorchnet(netname):
-    model = EncoderCNN()
+def get_pytorchnet(netname,vis_layer = 6):
+    model = EncoderCNN(vis_layer)
     PATH = './Caffe_Models/' + netname + '.ckpt'
     model.load_state_dict(torch.load(PATH), strict = False)
-#     model = models.resnet18(pretrained=True)
     model.avgpool = nn.AdaptiveAvgPool2d(1)
     model = model.float()
     model.eval()
@@ -147,10 +145,8 @@ def forward_pass(net, mynet, x, blobnames=['prob'], start='data'):
     returnVals = [y1, y2]
 
     print (y1.shape, y2.shape)
-#     net.forward_all(data=x)
-#     returnVals = [np.copy(net.blobs[b].data[:]) for b in blobnames]
     
-    print (np.max(returnVals[1]))
+    print (np.max(returnVals[1][0]))
 #     
     return returnVals
 

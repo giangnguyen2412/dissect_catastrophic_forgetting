@@ -35,7 +35,8 @@ import sensitivity_analysis_caffe as SA
 
 # pick neural network to run experiment for (alexnet, googlenet, vgg)
 netname = 'alexnet'
-mynet_name = 'encoder_3'
+mynet_name = 'encoder_4'
+visualizing_layer = 6
 # pick for which layers the explanations should be computet
 # (names depend on network, output layer is usually called 'prob')
 blobnames = ['prob']
@@ -74,7 +75,7 @@ utlC.set_caffe_mode(gpu=gpu)
 
 net = utlC.get_caffenet(netname)
 # mynet = utlC.get_caffenet(netname)
-mynet = utlC.get_pytorchnet(mynet_name)
+mynet = utlC.get_pytorchnet(mynet_name, visualizing_layer)
 
 # get the data
 X_test, X_test_im, X_filenames = utlD.get_imagenet_data(net=net)

@@ -31,8 +31,15 @@ Different settings can be adjusted here, please see the file for further informa
 The above script will use images from the "./data" folder. Only RGB images in format .png and .jpg of a minimum size of 227x227 pixels will be considered. If the image is larger, it will be cut off at the sides. Note that there should be enough images in this folder, since the samplers need them (see paper for further information).
 
 The "./data" folder also contains a text file with the ImageNet class labels.
+
+
 ### Pytorch implementation
 
 This script is rewrote for pytorhc implementation.
-Move your model to "Caffe_Models" file with the '.ckpt' file.
-The default setting of overlapping is Flase to accelerate the running time.
+
+1. Download alexnet.caffenet from https://github.com/BVLC/caffe/tree/master/models/bvlc_alexnet and upload it to the floder ./Caffe_Models/bvlc_alexnet/
+2. Move your model to "Caffe_Models" file with the '.ckpt' file to visualized your model and change the "mynet_name" to your model name in "run_DeepVis.py".
+3. If you want to chage the visualized layer, change the "visualizing_layer" to the layer you are interested in.
+4. Put the figures you want to visualize in folder ./data
+
+P.S. The default setting of overlapping is Flase to accelerate the running time.
