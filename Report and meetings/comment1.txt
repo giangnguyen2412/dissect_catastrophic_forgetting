@@ -13,3 +13,6 @@ to defy catastrophic forgetting to see our methods work or not
 +) RNN forgetting, proof.
 # what we gonna do:
 what we gonna do to mitigate forgetting
+
+
+## NOTE: from result of ContCapt S19 table D_frozen give better --> imply that decoder (free) cause forgetting more than encoder(free).
