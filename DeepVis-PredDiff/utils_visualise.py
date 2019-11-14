@@ -10,7 +10,7 @@ import matplotlib.cm as cm
 import pylab
 
 
-def plot_results(x_test, x_test_im, sensMap, predDiff, tarFunc, classnames, testIdx, save_path):
+def plot_results(x_test, x_test_im, sensMap, predDiff, tarFunc, classnames, testIdx, save_path, vis_filter = None):
     '''
     Plot the results of the relevance estimation
     '''
@@ -18,8 +18,12 @@ def plot_results(x_test, x_test_im, sensMap, predDiff, tarFunc, classnames, test
     
     tarIdx = np.argmax(tarFunc(x_test)[-1])
     tarClass = classnames[tarIdx]
-    #tarIdx = 287
     
+    if vis_filter != None:
+	tarIdx = vis_filter
+
+    save_path = save_path + '_' + str(tarIdx)
+
     plt.figure()
     plt.subplot(2,2,1)
     plt.imshow(x_test_im, interpolation='nearest')

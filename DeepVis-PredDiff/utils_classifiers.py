@@ -31,28 +31,27 @@ class EncoderCNN(nn.Module):
         super(EncoderCNN, self).__init__()
         resnet = models.resnet50(pretrained=True)
         modules = list(resnet.children())[:-1]      # delete the last fc layer.
-        self.last_layer = list(resnet.children())[-1]    # input features to this layer
+	first_conv = list(resnet.children())[:6]
+	self.last_layer = list(resnet.children())[-1]    # input features to this layer
+	self.resnet_conv1 = nn.Sequential(*first_conv)
         self.resnet = nn.Sequential(*modules)
         self.linear = nn.Linear(resnet.fc.in_features, 256)
-        self.bn = nn.BatchNorm1d(256, momentum=0.01)
-        
+	self.bn = nn.BatchNorm1d(256, momentum = 0.01)       
     def forward(self, images):
         """Extract feature vectors from input images."""
         with torch.no_grad():
             features = self.resnet(images)
+	    first_feat = self.resnet_conv1(images)
         features = features.reshape(features.size(0), -1)
-        cloned_features = copy.deepcopy(features)
-        classes = self.last_layer(cloned_features)
-        ps = torch.exp(classes)
-        features = self.bn(self.linear(features))   # batch_size, predicted labels
-        return classes
+        last_feat = self.last_layer(features)
+        return first_feat, last_feat
     
 
 
 def get_pytorchnet(netname):
     model = EncoderCNN()
     PATH = './Caffe_Models/' + netname + '.ckpt'
-    model.load_state_dict(torch.load(PATH))
+    model.load_state_dict(torch.load(PATH), strict = False)
 #     model = models.resnet18(pretrained=True)
     model.avgpool = nn.AdaptiveAvgPool2d(1)
     model = model.float()
@@ -142,15 +141,16 @@ def forward_pass(net, mynet, x, blobnames=['prob'], start='data'):
 #     y = mynet(x.float())
 #     y = torch.nn.functional.softmax(y, dim = 1).data.numpy()
     
+    y1 = mynet(x.float())[0].data.numpy()
+    y2 = mynet(x.float())[1]
+    y2 = torch.nn.functional.softmax(y2, dim = 1).data.numpy()
+    returnVals = [y1, y2]
 
-    y = mynet(x.float())
-    y = torch.nn.functional.softmax(y, dim = 1).data.numpy()
-    returnVals = [y]
-
+    print (y1.shape, y2.shape)
 #     net.forward_all(data=x)
 #     returnVals = [np.copy(net.blobs[b].data[:]) for b in blobnames]
     
-    print (np.max(returnVals[0]))
+    print (np.max(returnVals[1]))
 #     
     return returnVals
 

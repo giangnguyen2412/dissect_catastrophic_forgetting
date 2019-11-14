@@ -66,7 +66,7 @@ def get_imagenet_data(net):
 #     X = X_pre
     
     transform = transforms.Compose([                   #[1]
-            transforms.Resize(256),                    #[2]
+            transforms.Resize(image_size),                    #[2]
             transforms.CenterCrop(image_size),         #[3]
             transforms.ToTensor(),                     #[4]
             transforms.Normalize(                      #[5]

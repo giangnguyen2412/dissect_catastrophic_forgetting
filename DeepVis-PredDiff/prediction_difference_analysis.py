@@ -209,8 +209,8 @@ class PredDiffAnalyser:
         prediction_diffs = []
         # For the laplace correction, we need the number of training instances
         IMAGENET_TRAINSIZE = 100000
-        for b in xrange(self.num_blobs): 
-            pred_diffs = np.zeros((self.tests_per_batch,tarVals[b].shape[-1]))
+        for b in xrange(self.num_blobs):
+            pred_diffs = np.zeros((self.tests_per_batch,self.true_tar_val[b].shape[0]))
             for t in xrange(self.tests_per_batch):
                 avgP = np.average(tarVals[b][t], axis=0)
                 # if we deal with probabilities, i.e., the last blobs, use this:
@@ -225,7 +225,8 @@ class PredDiffAnalyser:
                     pd = oddsTarVal-oddsAvgP
                 # if we do not deal with probabilities, we just return the distance to the average
                 else:
-                    pd = self.true_tar_val[b] - avgP    
+		    pd_shape = self.true_tar_val[b].shape
+                    pd = self.true_tar_val[b] - avgP.reshape(pd_shape)    
                 # avg/max for the feature maps if we have feature maps in conv layers
                 pd = pd.reshape((pd.shape[0], -1))
                 pred_diffs[t] = np.average(pd, axis=1) # will only have an effect for convolutional layers

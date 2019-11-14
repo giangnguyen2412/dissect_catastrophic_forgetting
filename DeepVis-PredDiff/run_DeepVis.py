@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 From this script, experiments for ImageNet pictures can be started.
 See "configuration" below for the different possible settings.
@@ -36,7 +35,7 @@ import sensitivity_analysis_caffe as SA
 
 # pick neural network to run experiment for (alexnet, googlenet, vgg)
 netname = 'alexnet'
-
+mynet_name = 'encoder_3'
 # pick for which layers the explanations should be computet
 # (names depend on network, output layer is usually called 'prob')
 blobnames = ['prob']
@@ -52,7 +51,7 @@ gpu = True
 test_indices = None
 
 # window size (i.e., the size of the pixel patch that is marginalised out in each step)
-win_size = 5               # k in alg 1 (see paper)
+win_size = 5              # k in alg 1 (see paper)
 
 # indicate whether windows should be overlapping or not
 overlapping = False #Change to False to reduce the calculation time
@@ -75,7 +74,7 @@ utlC.set_caffe_mode(gpu=gpu)
 
 net = utlC.get_caffenet(netname)
 # mynet = utlC.get_caffenet(netname)
-mynet = utlC.get_pytorchnet('encoder')
+mynet = utlC.get_pytorchnet(mynet_name)
 
 # get the data
 X_test, X_test_im, X_filenames = utlD.get_imagenet_data(net=net)
@@ -107,13 +106,13 @@ for test_idx in test_indices:
     # get the image for plotting (not preprocessed)
     x_test_im = X_test_im[test_idx]
     # prediction of the network
-    y_pred = np.argmax(utlC.forward_pass(net, mynet, x_test))
+    y_pred = np.argmax(utlC.forward_pass(net, mynet, x_test)[-1])
     y_pred_label = classnames[y_pred]
     print (y_pred_label)
                            
     # get the path for saving the results
     if sampl_style == 'conditional':
-        save_path = path_results+'{}_{}_winSize{}_condSampl_numSampl{}_paddSize{}_{}'.format(X_filenames[test_idx],y_pred_label,win_size,num_samples,padding_size,netname)
+        save_path = path_results+'{}_{}_winSize{}_condSampl_numSampl{}_paddSize{}_{}'.format(X_filenames[test_idx],y_pred_label,win_size,num_samples,padding_size,mynet_name)
     elif sampl_style == 'marginal':
         save_path = path_results+'{}_{}_winSize{}_margSampl_numSampl{}_{}'.format(X_filenames[test_idx],y_pred_label,win_size,num_samples,netname)
 
@@ -138,7 +137,9 @@ for test_idx in test_indices:
     pred_diff = pda.get_rel_vect(win_size=win_size, overlap=overlapping)
     
     # plot and save the results
-    utlV.plot_results(x_test, x_test_im, sensMap, pred_diff[0], target_func, classnames, test_idx, save_path)
+    utlV.plot_results(x_test, x_test_im, sensMap, pred_diff[1], target_func, classnames, test_idx, save_path)
+    for vis_filter in range(512):
+    	utlV.plot_results(x_test, x_test_im, sensMap, pred_diff[0], target_func, classnames, test_idx, save_path, vis_filter)
     np.savez(save_path, *pred_diff)
     print "--- Total computation took {:.4f} minutes ---".format((time.time() - start_time)/60)
     
