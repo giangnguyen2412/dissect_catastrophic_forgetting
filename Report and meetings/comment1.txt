@@ -4,3 +4,12 @@
 - Baseline solutions: I need to add Fine-tuning approach before we adding any methods 
 to defy catastrophic forgetting to see our methods work or not
 - Experimental setup is not challenging now, please remove it from presentation
+
+#### next presentation layout ####
+# what we have done:
+- visualization on diff images (diff labels), diff layer, diff models
+-->
++) verifing CNN forgetting, proof
++) RNN forgetting, proof.
+# what we gonna do:
+what we gonna do to mitigate forgetting
