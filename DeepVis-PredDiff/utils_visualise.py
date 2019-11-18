@@ -20,7 +20,7 @@ def plot_results(x_test, x_test_im, sensMap, predDiff, tarFunc, classnames, test
     tarClass = classnames[tarIdx]
     
     if vis_filter != None:
-	tarIdx = vis_filter
+        tarIdx = vis_filter
 
     save_path = save_path + '_' + str(tarIdx)
 

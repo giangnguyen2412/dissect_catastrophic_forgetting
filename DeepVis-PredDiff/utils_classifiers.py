@@ -29,22 +29,22 @@ class EncoderCNN(nn.Module):
         super(EncoderCNN, self).__init__()
         resnet = models.resnet50(pretrained=True)
         modules = list(resnet.children())[:-1]      # delete the last fc layer.
-	for i, layer in enumerate(modules):
-	    print ('layer', i, layer)
-	first_conv = list(resnet.children())[:vis_layer]
-	self.last_layer = list(resnet.children())[-1]    # input features to this layer
-	self.resnet_conv1 = nn.Sequential(*first_conv)
+        for i, layer in enumerate(modules):
+            print ('layer', i, layer)
+        first_conv = list(resnet.children())[:vis_layer]
+        self.last_layer = list(resnet.children())[-1]    # input features to this layer
+        self.resnet_conv1 = nn.Sequential(*first_conv)
         self.resnet = nn.Sequential(*modules)
         self.linear = nn.Linear(resnet.fc.in_features, 256)
-	self.bn = nn.BatchNorm1d(256, momentum = 0.01)       
+        self.bn = nn.BatchNorm1d(256, momentum = 0.01)
+
     def forward(self, images):
         with torch.no_grad():
             features = self.resnet(images)
-	    first_feat = self.resnet_conv1(images)
+        first_feat = self.resnet_conv1(images)
         features = features.reshape(features.size(0), -1)
         last_feat = self.last_layer(features)
         return first_feat, last_feat
-    
 
 
 def get_pytorchnet(netname,vis_layer = 6):
@@ -112,12 +112,11 @@ def get_caffenet(netname):
         
     else:
         
-        print 'Provided netname unknown. Returning None.'
+        print ('Provided netname unknown. Returning None.')
         net = None
     
     return net  
      
-
 
 def forward_pass(net, mynet, x, blobnames=['prob'], start='data'):
     

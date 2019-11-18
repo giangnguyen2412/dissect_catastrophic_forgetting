@@ -35,7 +35,7 @@ import sensitivity_analysis_caffe as SA
 
 # pick neural network to run experiment for (alexnet, googlenet, vgg)
 netname = 'alexnet'
-mynet_name = 'encoder_4'
+mynet_name = 'encoder'
 visualizing_layer = 6
 # pick for which layers the explanations should be computet
 # (names depend on network, output layer is usually called 'prob')
@@ -71,7 +71,7 @@ batch_size = 128
 
 # ------------------------ SET-UP ------------------------
 
-utlC.set_caffe_mode(gpu=gpu)
+utlC.set_caffe_mode(gpu=False)
 
 net = utlC.get_caffenet(netname)
 # mynet = utlC.get_caffenet(netname)
@@ -118,14 +118,15 @@ for test_idx in test_indices:
         save_path = path_results+'{}_{}_winSize{}_margSampl_numSampl{}_{}'.format(X_filenames[test_idx],y_pred_label,win_size,num_samples,netname)
 
     if os.path.exists(save_path+'.npz'):
-        print 'Results for ', X_filenames[test_idx], ' exist, will move to the next image. '
+        print('Results for ', X_filenames[test_idx], ' exist, will move to the next image. ')
         continue
                  
-    print "doing test...", "file :", X_filenames[test_idx], ", net:", netname, ", win_size:", win_size, ", sampling: ", sampl_style
+    print( "doing test...", "file :", X_filenames[test_idx], ", net:", netname, ", win_size:", win_size, ", sampling: ", sampl_style)
 
     # compute the sensitivity map
-    layer_name = net.blobs.keys()[-2] # look at penultimate layer (like in Simonyan et al. (2013))
-    sensMap = SA.get_sens_map(net, x_test[np.newaxis], layer_name, np.argmax(target_func(x_test)[-1][0]))                 
+    keys = list(net.blobs.keys())
+    layer_name = keys[-2] # look at penultimate layer (like in Simonyan et al. (2013))
+    sensMap = SA.get_sens_map(net, x_test[np.newaxis], layer_name, np.argmax(target_func(x_test)[-1][0]))
 
     start_time = time.time()
     
@@ -142,7 +143,7 @@ for test_idx in test_indices:
     for vis_filter in range(512):
     	utlV.plot_results(x_test, x_test_im, sensMap, pred_diff[0], target_func, classnames, test_idx, save_path, vis_filter)
     np.savez(save_path, *pred_diff)
-    print "--- Total computation took {:.4f} minutes ---".format((time.time() - start_time)/60)
+    print ("--- Total computation took {:.4f} minutes ---".format((time.time() - start_time)/60))
     
         
 
