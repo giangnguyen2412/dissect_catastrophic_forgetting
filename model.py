@@ -8,14 +8,16 @@ import copy
 
 class EncoderCNN(nn.Module):
     def __init__(self, embed_size):
-        """Load the pretrained ResNet-152 and replace top fc layer."""
+        """Load the pretrained ResNet-50 and replace top fc layer."""
         super(EncoderCNN, self).__init__()
         resnet = models.resnet50(pretrained=True)
+        self.resnet_child = list(resnet.children())
         modules = list(resnet.children())[:-1]      # delete the last fc layer.
         self.last_layer = list(resnet.children())[-1]    # input features to this layer
         self.resnet = nn.Sequential(*modules)
         self.linear = nn.Linear(resnet.fc.in_features, embed_size)
         self.bn = nn.BatchNorm1d(embed_size, momentum=0.01)
+
         
     def forward(self, images):
         """Extract feature vectors from input images."""

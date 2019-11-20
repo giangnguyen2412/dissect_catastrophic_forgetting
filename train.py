@@ -80,6 +80,8 @@ def main(args):
         args.task_name += '_freeze_enc'
     elif args.freeze_dec:
         args.task_name += '_freeze_dec'
+    elif args.freeze_cri:
+        args.task_name += '_freeze_cri'
 
     if args.task_type == 'seq':
         args.model_path = cfg['model']['model_path_format'].format(args.task_type, args.task_name + '_seq', 'models')
@@ -100,6 +102,15 @@ def main(args):
         print("Freeze decoder technique!")
         for param in decoder.lstm.parameters():
             param.requires_grad_(False)
+
+    if args.freeze_cri:
+        print("Critical Freezing technique!")
+        layer_idx = -1
+        for child in encoder.resnet.children():
+            layer_idx += 1
+            if layer_idx == 7:
+                for param in child.parameters():
+                    param.requires_grad = False
 
     train_loader = get_loader(root=train_root, json=train_json, vocab=vocab,
                               transform=transform, batch_size=args.batch_size,
@@ -269,6 +280,9 @@ if __name__ == '__main__':
 
     # Technique options
     parser.add_argument('--fine_tuning', action="store_true", help="use Fine-tuning from a check point")
+    parser.add_argument('--freeze_enc',  action="store_true", help="use Freezing the encoder")
+    parser.add_argument('--freeze_dec',  action="store_true", help="use Freezing the decoder")
+    parser.add_argument('--freeze_cri',  action="store_true", help="use Critical Freezing method")
 
     # As Karpathy, 3e-4 is the best learning rate for Adam
     parser.add_argument('--learning_rate', type=float, default=5e-4)

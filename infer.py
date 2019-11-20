@@ -93,7 +93,7 @@ def infer_caption(img_path, json_path, model, vocab_path, prediction_path, id2cl
         if image_tensor.size()[1] == 1:
             img_gray_num += 1
             continue
-        feature = encoder(image_tensor)
+        feature, _, _ = encoder(image_tensor)
         sampled_ids = decoder.sample(feature)
         sampled_ids = sampled_ids[0].cpu().numpy()  # (1, max_seq_length) -> (max_seq_length)
 
