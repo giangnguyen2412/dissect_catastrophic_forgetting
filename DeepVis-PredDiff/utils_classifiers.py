@@ -25,30 +25,43 @@ import copy
 
 
 class EncoderCNN(nn.Module):
-    def __init__(self, vis_layer):
+    def __init__(self):
         super(EncoderCNN, self).__init__()
         resnet = models.resnet50(pretrained=True)
         modules = list(resnet.children())[:-1]      # delete the last fc layer.
-	for i, layer in enumerate(modules):
-	    print ('layer', i, layer)
-	first_conv = list(resnet.children())[:vis_layer]
-	self.last_layer = list(resnet.children())[-1]    # input features to this layer
-	self.resnet_conv1 = nn.Sequential(*first_conv)
+        for i, layer in enumerate(modules):
+            print ('layer', i, layer)
+        conv1 = list(resnet.children())[:4]
+        conv2 = list(resnet.children())[:5]
+        conv3 = list(resnet.children())[:6]
+        conv4 = list(resnet.children())[:7]
+        conv5 = list(resnet.children())[:8]
+
+        self.last_layer = list(resnet.children())[-1]    # input features to this layer
+        self.conv1 = nn.Sequential(*conv1)
+        self.conv2 = nn.Sequential(*conv2)
+        self.conv3 = nn.Sequential(*conv3)
+        self.conv4 = nn.Sequential(*conv4)
+        self.conv5 = nn.Sequential(*conv5)
         self.resnet = nn.Sequential(*modules)
         self.linear = nn.Linear(resnet.fc.in_features, 256)
-	self.bn = nn.BatchNorm1d(256, momentum = 0.01)       
+        self.bn = nn.BatchNorm1d(256, momentum = 0.01)       
     def forward(self, images):
         with torch.no_grad():
             features = self.resnet(images)
-	    first_feat = self.resnet_conv1(images)
+        feat1 = self.conv1(images)
+        feat2 = self.conv2(images)
+        feat3 = self.conv3(images)
+        feat4 = self.conv4(images)
+        feat5 = self.conv5(images)
         features = features.reshape(features.size(0), -1)
         last_feat = self.last_layer(features)
-        return first_feat, last_feat
+        return feat1, feat2, feat3, feat4, feat5, last_feat
     
 
 
-def get_pytorchnet(netname,vis_layer = 6):
-    model = EncoderCNN(vis_layer)
+def get_pytorchnet(netname):
+    model = EncoderCNN()
     PATH = './Caffe_Models/' + netname + '.ckpt'
     model.load_state_dict(torch.load(PATH), strict = False)
     model.avgpool = nn.AdaptiveAvgPool2d(1)
@@ -112,7 +125,7 @@ def get_caffenet(netname):
         
     else:
         
-        print 'Provided netname unknown. Returning None.'
+        print ('Provided netname unknown. Returning None.')
         net = None
     
     return net  
@@ -139,14 +152,17 @@ def forward_pass(net, mynet, x, blobnames=['prob'], start='data'):
 #     y = mynet(x.float())
 #     y = torch.nn.functional.softmax(y, dim = 1).data.numpy()
     
-    y1 = mynet(x.float())[0].data.numpy()
-    y2 = mynet(x.float())[1]
-    y2 = torch.nn.functional.softmax(y2, dim = 1).data.numpy()
-    returnVals = [y1, y2]
+    y = mynet(x.float())
+    y1 = y[0].data.numpy()
+    y2 = y[1].data.numpy()
+    y3 = y[2].data.numpy()
+    y4 = y[3].data.numpy()
+    y5 = y[4].data.numpy()
 
-    print (y1.shape, y2.shape)
-    
-    print (np.max(returnVals[1][0]))
-#     
+    y6 = y[-1]
+    y6 = torch.nn.functional.softmax(y6, dim = 1).data.numpy()
+    print (np.max(y6))
+    returnVals = [y1, y2, y3, y4, y5, y6]
+     
     return returnVals
 

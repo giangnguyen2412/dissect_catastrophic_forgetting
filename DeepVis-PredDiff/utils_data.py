@@ -39,46 +39,36 @@ def get_imagenet_data(net):
         
     # fill up data matrix
     img_dim = net.crop_dims
-    image_size = img_dim[0]
-    print (image_size)
-    X = np.empty((0, img_dim[0], img_dim[1], 3))
+    image_size = (img_dim[0], img_dim[0])
+    transform1 = transforms.Compose([                  
+            transforms.Resize(256),             
+            transforms.CenterCrop(image_size)])
+
+    transform2 = transforms.Compose([                
+            transforms.Resize(256),            
+            transforms.CenterCrop(image_size),        
+            transforms.ToTensor(),                    
+            transforms.Normalize(                     
+            mean=[0.485, 0.456, 0.406],               
+            std=[0.229, 0.224, 0.225]                 
+            )])
+
     X_filenames = []
+    X = []
+    X_im = []
     for i in range(len(img_list)):
-        np_img = np.float32(PIL.Image.open('{}/{}'.format(path_data, img_list[i])))
-        if np_img.shape[0] >= img_dim[0] and np_img.shape[1] >= img_dim[1]:
-            o = (0.5*np.array([np_img.shape[0]-img_dim[0], np_img.shape[1]-img_dim[1]])).astype(np.int)
-            X = np.vstack((X, np_img[o[0]:o[0]+img_dim[0], o[1]:o[1]+img_dim[1], :][np.newaxis]))
+        img = PIL.Image.open('{}/{}'.format(path_data, img_list[i]))
+        if np.array(img).shape[0] >= img_dim[0] and np.array(img).shape[1] >= img_dim[1]:
+            img_im = np.array(transform1(img))
+            img_t = transform2(img).data.numpy()
+            X_im.append(img_im)
+            X.append(img_t)
             X_filenames.append(img_list[i].replace(".",""))
         else:
             print("Skipped ",img_list[i],", image dimensions were too small.")
 
-    # the number of images we found in the folder
-    num_imgs = X.shape[0]
-
     # cast to image values that can be displayed directly with plt.imshow()
-    X_im = np.uint8(X)
-        
-    # preprocess
-    
-#     X_pre = np.zeros((X.shape[0], 3, img_dim[0], img_dim[1]))
-#     for i in range(num_imgs):
-#         X_pre[i] = net.transformer.preprocess('data', X[i])
-#     X = X_pre
-    
-    transform = transforms.Compose([                   #[1]
-            transforms.Resize(image_size),             #[2]
-            transforms.CenterCrop(image_size),         #[3]
-            transforms.ToTensor(),                     #[4]
-            transforms.Normalize(                      #[5]
-            mean=[0.485, 0.456, 0.406],                #[6]
-            std=[0.229, 0.224, 0.225]                  #[7]
-            )])
-      
-    X = []
-    for i in range(num_imgs):
-        img = PIL.Image.open('{}/{}'.format(path_data, img_list[i]))
-        img_t = transform(img).data.numpy()
-        X.append(img_t)
+    X_im = np.uint8(np.array(X_im))
     
     X = np.array(X)
     
@@ -88,3 +78,11 @@ def get_imagenet_data(net):
 def get_imagenet_classnames():
     """ Returns the classnames of all 1000 ImageNet classes """
     return np.loadtxt(open(path_data+'/ilsvrc_2012_labels.txt'), dtype=object, delimiter='\n')
+
+def IoU(seg1, seg2):
+    seg1 = np.array(seg1.clip(min = 0), dtype=bool)
+    seg2 = np.array(seg2.clip(min = 0), dtype=bool)
+    overlap = seg1*seg2 # Logical AND
+    union = seg1 + seg2 # Logical OR
+    IOU = overlap.sum()/float(union.sum())
+    return IOU

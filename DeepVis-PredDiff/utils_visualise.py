@@ -17,12 +17,12 @@ def plot_results(x_test, x_test_im, sensMap, predDiff, tarFunc, classnames, test
     imsize = x_test.shape  
     
     tarIdx = np.argmax(tarFunc(x_test)[-1])
+    #tarIdx = 286
     tarClass = classnames[tarIdx]
-    
-    if vis_filter != None:
-	tarIdx = vis_filter
 
-    save_path = save_path + '_' + str(tarIdx)
+    if vis_filter != None:
+        tarIdx = vis_filter
+        save_path = save_path + '_' + str(tarIdx)
 
     plt.figure()
     plt.subplot(2,2,1)
