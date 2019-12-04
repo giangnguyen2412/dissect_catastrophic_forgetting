@@ -13,7 +13,7 @@ We modified the source code to fit pytorch net and generate IoU comparison for d
 
 Experiments were done using ResNet50 and testing on MS-COCO dataset.
 
-![](https://github.com/luulinh90s/Explainable-AI-project/tree/master/AutoDeepVis/AutoDeepVis.png)
+![](https://github.com/luulinh90s/Explainable-AI-project/blob/master/AutoDeepVis/AutoDeepVis.png)
 
 
 1. Move your model to "Pytorch_Models" file with the '.ckpt' file to visualized your models.
