@@ -11,7 +11,6 @@ Utility methods for handling the classifiers:
 # this is to supress some unnecessary output of caffe in the linux console
 import os
 os.environ['GLOG_minloglevel'] = '2'
-         
 import numpy as np
 import caffe 
 import torch
@@ -29,8 +28,6 @@ class EncoderCNN(nn.Module):
         super(EncoderCNN, self).__init__()
         resnet = models.resnet50(pretrained=True)
         modules = list(resnet.children())[:-1]      # delete the last fc layer.
-        for i, layer in enumerate(modules):
-            print ('layer', i, layer)
         conv1 = list(resnet.children())[:4]
         conv2 = list(resnet.children())[:5]
         conv3 = list(resnet.children())[:6]
@@ -62,7 +59,7 @@ class EncoderCNN(nn.Module):
 
 def get_pytorchnet(netname):
     model = EncoderCNN()
-    PATH = './Caffe_Models/' + netname + '.ckpt'
+    PATH = './Pytorch_Models/' + netname + '.ckpt'
     model.load_state_dict(torch.load(PATH), strict = False)
     model.avgpool = nn.AdaptiveAvgPool2d(1)
     model = model.float()
@@ -76,81 +73,19 @@ def set_caffe_mode(gpu):
         caffe.set_mode_gpu()
     else:
         caffe.set_mode_cpu()    
-        
-     
-def get_caffenet(netname):
-    
-    if netname=='googlenet':
-     
-        # caffemodel paths
-        model_path = './Caffe_Models/googlenet/'
-        net_fn   = model_path + 'deploy.prototxt'
-        param_fn = model_path + 'bvlc_googlenet.caffemodel'
-        
-        # get the mean (googlenet doesn't do this per feature, but per channel, see train_val.prototxt)
-        mean = np.float32([104.0, 117.0, 123.0]) 
-        
-        # define the neural network classifier
-        net = caffe.Classifier(net_fn, param_fn, caffe.TEST, channel_swap = (2,1,0), mean = mean)
 
-    elif netname=='alexnet':
-            
-        # caffemodel paths
-        model_path = './Caffe_Models/bvlc_alexnet/'
-        net_fn   = model_path + 'deploy.prototxt'
-        param_fn = model_path + 'bvlc_alexnet.caffemodel'
-        
-        # get the mean
-        mean = np.load('./Caffe_Models/ilsvrc_2012_mean.npy')
-        # crop mean
-        image_dims = (224, 224) # see deploy.prototxt file
-        excess_h = mean.shape[1] - image_dims[0]
-        excess_w = mean.shape[2] - image_dims[1]
-        mean = mean[:, excess_h:(excess_h+image_dims[0]), excess_w:(excess_w+image_dims[1])]
-        
-        # define the neural network classifier
-        net = caffe.Classifier(net_fn, param_fn, caffe.TEST, channel_swap = (2,1,0), mean = mean)
-        
-    elif netname == 'vgg':
-    
-        # caffemodel paths
-        model_path = './Caffe_Models/vgg network/'
-        net_fn   = model_path + 'VGG_ILSVRC_16_layers_deploy.prototxt'
-        param_fn = model_path + 'VGG_ILSVRC_16_layers.caffemodel'
-        
-        mean = np.float32([103.939, 116.779, 123.68])    
-        
-        # define the neural network classifier    
-        net = caffe.Classifier(net_fn, param_fn, caffe.TEST, channel_swap = (2,1,0), mean = mean)
-        
-    else:
-        
-        print ('Provided netname unknown. Returning None.')
-        net = None
-    
-    return net  
      
 
 
-def forward_pass(net, mynet, x, blobnames=['prob'], start='data'):
-    
+def forward_pass(mynet, x, img_size = 224):
+    img_shape = (3, img_size, img_size)
     # get input into right shape
     if np.ndim(x)==3:
-        x = x[np.newaxis]  
+        x = x[np.newaxis]
     if np.ndim(x)<4:
-        input_shape = net.blobs[start].data.shape
-        x = x.reshape([x.shape[0]]+list(input_shape)[1:])
+        x = x.reshape([x.shape[0]]+list(img_shape)[:])
 
-    # reshape net so it fits the batchsize (implicitly given by x)
-    if net.blobs['data'].data.shape[0] != x.shape[0]:
-        net.blobs['data'].reshape(*(x.shape))
-
-        
-    # feed forward the batch through the next
     x = torch.from_numpy(x)
-    
-#     y = mynet(x.float())
-#     y = torch.nn.functional.softmax(y, dim = 1).data.numpy()
     
     y = mynet(x.float())
     y1 = y[0].data.numpy()
@@ -161,7 +96,7 @@ def forward_pass(net, mynet, x, blobnames=['prob'], start='data'):
 
     y6 = y[-1]
     y6 = torch.nn.functional.softmax(y6, dim = 1).data.numpy()
-    print (np.max(y6))
+    print (np.max(y6[0]))
     returnVals = [y1, y2, y3, y4, y5, y6]
      
     return returnVals

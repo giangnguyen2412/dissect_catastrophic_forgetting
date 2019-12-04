@@ -11,23 +11,13 @@ import numpy as np
 import os
 import PIL
 from torchvision import transforms
-
+import matplotlib.pyplot as plt
 
 path_data = "./data"
 
-
-def get_imagenet_data(net):
-    """
-    Returns a small dataset of ImageNet data.
-    Input:  
-            net         a neural network (caffe model)
-    Output:
-            X           the feature values, in a matrix 
-                        (numDatapoints, [imageDimensions])
-            X_im        the features as uint8 values, to display
-                        using plt.imshow()
-            X_filenames the filenames, with the dots removed
-    """
+  
+    
+def get_image_data(img_size = 224):
 
     # get a list of all the images (note that we use networks trained on ImageNet data)
     img_list = os.listdir(path_data)
@@ -38,15 +28,14 @@ def get_imagenet_data(net):
             img_list.remove(img_file)
         
     # fill up data matrix
-    img_dim = net.crop_dims
-    image_size = (img_dim[0], img_dim[0])
+    img_dim = (img_size, img_size)
     transform1 = transforms.Compose([                  
             transforms.Resize(256),             
-            transforms.CenterCrop(image_size)])
+            transforms.CenterCrop(img_dim)])
 
     transform2 = transforms.Compose([                
             transforms.Resize(256),            
-            transforms.CenterCrop(image_size),        
+            transforms.CenterCrop(img_dim),        
             transforms.ToTensor(),                    
             transforms.Normalize(                     
             mean=[0.485, 0.456, 0.406],               
@@ -64,6 +53,7 @@ def get_imagenet_data(net):
             X_im.append(img_im)
             X.append(img_t)
             X_filenames.append(img_list[i].replace(".",""))
+            
         else:
             print("Skipped ",img_list[i],", image dimensions were too small.")
 

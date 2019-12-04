@@ -13,7 +13,6 @@ import scipy
 import os.path
 # utilities
 import utils_data as utlD
-import utils_classifiers as utlC
 
 
 class marg_sampler_imagenet:
@@ -115,11 +114,8 @@ class cond_sampler_imagenet:
         else:
                  
             for c in [0,1,2]:
- 
-                net = utlC.get_caffenet(self.netname)
-
                 # get the imagenet data
-                X, _, _ = utlD.get_imagenet_data(net)
+                X, _, _ = utlD.get_image_data()
                 
                 # get samples for fitting the distribution
                 patchesMat = np.empty((0,self.patchSize*self.patchSize), dtype=np.float)
@@ -320,21 +316,20 @@ class cond_sampler_imagenet:
 #%%     
         
         
-def save_minmax_values(netname):
+def save_minmax_values(mynet_name):
     '''
     When X.npy is updated, this can be executed to also update the min/max
     values of the data (which is being used to cut off the values in the
     sampler so that we don't have overflowing values)
     '''
-    net = utlC.get_caffenet(netname)
-    X, _, _ = utlD.get_imagenet_data(net)
+    X, _, _ = utlD.get_image_data()
     minMaxVals = np.zeros((2,3,X.shape[-1],X.shape[-1]))
     minMaxVals[0] = np.min(X,axis=0)
     minMaxVals[1] = np.max(X,axis=0)
     path_folder = './gaussians/'
     if not os.path.exists(path_folder):
         os.makedirs(path_folder)
-    np.save(path_folder+'{}_minMaxVals'.format(netname), minMaxVals)
+    np.save(path_folder+'{}_minMaxVals'.format(mynet_name), minMaxVals)
    
    
     
