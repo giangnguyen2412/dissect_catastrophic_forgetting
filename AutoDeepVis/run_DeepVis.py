@@ -34,14 +34,13 @@ import Calculate_IOUs as CI
 
 def PDA(mynets, basenet, img_size):
     test_indices = None
-    win_size = 5  
+    win_size = 10  
     overlapping = False
     num_samples = 10
     padding_size = 2            
     batch_size = 128
     image_dims = (img_size, img_size)
-    utlC.set_caffe_mode(gpu=False)
-    # mynet = utlC.get_caffenet(netname)
+    utlC.set_caffe_mode(gpu=True)
     
     # get the data
     X_test, X_test_im, X_filenames = utlD.get_image_data()
@@ -54,7 +53,11 @@ def PDA(mynets, basenet, img_size):
     # make folder for saving the results if it doesn't exist       
     IOU_savepath = './IOU_results/' 
     if not os.path.exists(IOU_savepath):
-        os.makedirs(IOU_savepath)    
+        os.makedirs(IOU_savepath)  
+
+    npz_savepath = './npz_results/' 
+    if not os.path.exists(npz_savepath):
+        os.makedirs(npz_savepath)   
     
     # ------------------------ EXPERIMENTS ------------------------
     
@@ -66,6 +69,7 @@ def PDA(mynets, basenet, img_size):
             x_test = X_test[test_idx]
             y_pred = np.argmax(utlC.forward_pass(mynet, x_test, img_size)[-1])
             y_pred_label = classnames[y_pred]
+            print (mynet_name, y_pred_label)
             if mynet_name == basenet:
                 base_img_id = y_pred
                 
@@ -80,7 +84,7 @@ def PDA(mynets, basenet, img_size):
         
             print ("--- Total computation took {:.4f} minutes ---".format((time.time() - start_time)/60))
             npz_dict[mynet_name] = pred_diff
-#            np.savez(npz_savepath + mynet_name + '.npz', *pred_diff)
+            np.savez(npz_savepath + mynet_name + '_' + X_filenames[test_idx] + '.npz', *pred_diff)
             predicted_labels[mynet_name] = y_pred_label
         CI.IoU_calculation(mynets, X_filenames[test_idx][:-3], predicted_labels, base_img_id, npz_dict, basenet)
     return
@@ -88,7 +92,6 @@ def PDA(mynets, basenet, img_size):
 
 model_paths = glob.glob('./Pytorch_Models/*.ckpt')
 models = [model_path.split('/')[-1].split('.')[0] for model_path in model_paths]
-models = ['M19']
 img_size = 224
 print ('Loaded models:', models)
 PDA(models, 'M19', img_size)

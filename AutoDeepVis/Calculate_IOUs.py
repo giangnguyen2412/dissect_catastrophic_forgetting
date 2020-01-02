@@ -13,7 +13,7 @@ def IoU(seg1, seg2):
     return IOU
 
 def get_block_output(npz, block):
-    block = 'arr_' + str(block)
+    #block = 'arr_' + str(block)
     return npz[block]
 
 def match_best_IoU(base_map, maps):
@@ -65,13 +65,30 @@ def draw_vis(IOUs_dict, Images_dict, output_name, img_cat, predicted_label):
     plt.savefig('./IOU_results/%s_%s_%s.jpg' % (img_cat, output_name, predicted_label))
     return 
 
+def write_forgetting_layer(IOUs_dict, model_name, img_cat):
+    forgetting_report = './IOU_results/forgetting_report.txt'
+    slopes = []
+    for layer in IOUs_dict.keys():
+        if int(layer) != 4 and int(layer) != 5:
+            slope = IOUs_dict[layer+1] - IOUs_dict[layer]
+            slopes.append(slope)
+        else:
+            slopes.append(0)
+    fp = open(forgetting_report , 'a')
+    fp.write('%s\t%s\t%s\n' %(model_name, img_cat, (np.argmin(slopes)+2)))
+    fp.close()
+    return
+    
+
 def output_result(basenet, model_name, npz_dict, mask, img_cat, img_id, predicted_labels, Images_basenet = None):
+    
     predicted_label = predicted_labels[model_name]
     IOUs_dict, Images_dict = comapre_mask(model_name, npz_dict, mask, img_id)
     draw_vis(IOUs_dict, Images_dict, model_name + '_GT', img_cat, predicted_label)
     if model_name != basenet:
         IOUs_dict, Images_dict = compare_basenet(basenet, model_name, npz_dict, Images_basenet, img_id)
         draw_vis(IOUs_dict, Images_dict, model_name + '_%s' % basenet, img_cat, predicted_label)
+        write_forgetting_layer(IOUs_dict, model_name, img_cat)
         return 
     else:
         return Images_dict
@@ -79,8 +96,9 @@ def output_result(basenet, model_name, npz_dict, mask, img_cat, img_id, predicte
 def IoU_calculation(mynets, img_cat, predicted_labels, img_id, npz_dict, basenet):
     mask = np.load('./data/%s.npy' % img_cat).reshape(224*224)
     Images_basenet = output_result(basenet, basenet, npz_dict, mask, img_cat, img_id, predicted_labels)
-    mynets.remove(basenet)
-    for mynet in mynets:
+    testnets = mynets.copy()
+    testnets.remove(basenet)
+    for mynet in testnets:
         output_result(basenet, mynet, npz_dict, mask, img_cat, img_id, predicted_labels, Images_basenet)
     return
 
