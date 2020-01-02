@@ -54,7 +54,12 @@ def PDA(mynets, basenet, img_size):
     IOU_savepath = './IOU_results/' 
     if not os.path.exists(IOU_savepath):
         os.makedirs(IOU_savepath)  
-
+		
+	forgetting_report = './IOU_results/forgetting_report.txt'
+    fp = open(forgetting_report , 'w')
+    fp.write('Model\tInput_img\tForgetting_layer\n')
+    fp.close()
+	
     npz_savepath = './npz_results/' 
     if not os.path.exists(npz_savepath):
         os.makedirs(npz_savepath)   
