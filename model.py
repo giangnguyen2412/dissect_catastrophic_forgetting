@@ -20,8 +20,7 @@ class EncoderCNN(nn.Module):
 
     def forward(self, images):
         """Extract feature vectors from input images."""
-        with torch.no_grad():
-            features = self.resnet(images)
+        features = self.resnet(images)
         features = features.reshape(features.size(0), -1)
         cloned_features = copy.deepcopy(features)
         classes = self.last_layer(cloned_features)
