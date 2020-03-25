@@ -1,12 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-
-Utility methods for handling the ImageNet data:
-    get_imagenet_data(net, preprocess)
-    get_imagenet_classnames()
-    
-"""
-
 import numpy as np
 import os
 import PIL
@@ -14,9 +6,7 @@ from torchvision import transforms
 import matplotlib.pyplot as plt
 
 path_data = "./data"
-
   
-    
 def get_image_data(img_size = 224):
 
     # get a list of all the images (note that we use networks trained on ImageNet data)
@@ -39,8 +29,7 @@ def get_image_data(img_size = 224):
             transforms.ToTensor(),                    
             transforms.Normalize(                     
             mean=[0.485, 0.456, 0.406],               
-            std=[0.229, 0.224, 0.225]                 
-            )])
+            std=[0.229, 0.224, 0.225])])
 
     X_filenames = []
     X = []
@@ -63,15 +52,3 @@ def get_image_data(img_size = 224):
     X = np.array(X)
     
     return X, X_im, X_filenames
-
-
-def get_imagenet_classnames():
-    return np.loadtxt(open(path_data+'/ilsvrc_2012_labels.txt'), dtype=object, delimiter='\n')
-
-def IoU(seg1, seg2):
-    seg1 = np.array(seg1.clip(min = 0), dtype=bool)
-    seg2 = np.array(seg2.clip(min = 0), dtype=bool)
-    overlap = seg1*seg2 # Logical AND
-    union = seg1 + seg2 # Logical OR
-    IOU = overlap.sum()/float(union.sum())
-    return IOU
