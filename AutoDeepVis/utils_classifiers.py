@@ -11,12 +11,14 @@ Utility methods for handling the classifiers:
 # this is to supress some unnecessary output of caffe in the linux console
 import os
 os.environ['GLOG_minloglevel'] = '2'
+
 import numpy as np
 import caffe 
 import torch
 import torch.nn as nn
 import torchvision.models as models
 import torch
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pack_padded_sequence
@@ -44,8 +46,7 @@ class EncoderCNN(nn.Module):
         self.linear = nn.Linear(resnet.fc.in_features, 256)
         self.bn = nn.BatchNorm1d(256, momentum = 0.01)       
     def forward(self, images):
-        with torch.no_grad():
-            features = self.resnet(images)
+        features = self.resnet(images)
         feat1 = self.conv1(images)
         feat2 = self.conv2(images)
         feat3 = self.conv3(images)
@@ -61,20 +62,12 @@ def get_pytorchnet(netname):
     model = EncoderCNN()
     PATH = './Pytorch_Models/' + netname + '.ckpt'
     model.load_state_dict(torch.load(PATH), strict = False)
-    model.avgpool = nn.AdaptiveAvgPool2d(1)
-    model = model.float()
+ #   model.avgpool = nn.AdaptiveAvgPool2d(1)
+ #   model = models.resnet50(pretrained=True)
+    model = model.cuda()
     model.eval()
     return model
-
-
-def set_caffe_mode(gpu):
-    ''' Set whether caffe runs in gpu or not, input is boolean '''
-    if gpu:
-        caffe.set_mode_gpu()
-    else:
-        caffe.set_mode_cpu()    
-
-     
+    
 
 
 def forward_pass(mynet, x, img_size = 224):
@@ -87,16 +80,17 @@ def forward_pass(mynet, x, img_size = 224):
 
     x = torch.from_numpy(x)
     
-    y = mynet(x.float())
-    y1 = y[0].data.numpy()
-    y2 = y[1].data.numpy()
-    y3 = y[2].data.numpy()
-    y4 = y[3].data.numpy()
-    y5 = y[4].data.numpy()
+    y = mynet(x.float().to(device))
+    y1 = y[0].data.cpu().numpy()
+    y2 = y[1].data.cpu().numpy()
+    y3 = y[2].data.cpu().numpy()
+    y4 = y[3].data.cpu().numpy()
+    y5 = y[4].data.cpu().numpy()
 
     y6 = y[-1]
-    y6 = torch.nn.functional.softmax(y6, dim = 1).data.numpy()
-    print (np.max(y6[0]))
+    y6 = torch.nn.functional.softmax(y6, dim = 1).data.cpu().numpy()
+    #print (np.max(y6[0]))
+    #print (y6.shape)
     returnVals = [y1, y2, y3, y4, y5, y6]
      
     return returnVals

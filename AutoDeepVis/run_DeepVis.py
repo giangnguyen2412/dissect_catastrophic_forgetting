@@ -34,14 +34,13 @@ import Calculate_IOUs as CI
 
 def PDA(mynets, basenet, img_size):
     test_indices = None
-    win_size = 10  
+    win_size = 5 
     overlapping = False
     num_samples = 10
     padding_size = 2            
     batch_size = 128
     image_dims = (img_size, img_size)
-    utlC.set_caffe_mode(gpu=True)
-    
+
     # get the data
     X_test, X_test_im, X_filenames = utlD.get_image_data()
     # get the label names of the 1000 ImageNet classes
@@ -55,7 +54,7 @@ def PDA(mynets, basenet, img_size):
     if not os.path.exists(IOU_savepath):
         os.makedirs(IOU_savepath)  
 		
-	forgetting_report = './IOU_results/forgetting_report.txt'
+    forgetting_report = './IOU_results/forgetting_report.txt'
     fp = open(forgetting_report , 'w')
     fp.write('Model\tInput_img\tForgetting_layer\n')
     fp.close()
@@ -74,12 +73,10 @@ def PDA(mynets, basenet, img_size):
             x_test = X_test[test_idx]
             y_pred = np.argmax(utlC.forward_pass(mynet, x_test, img_size)[-1])
             y_pred_label = classnames[y_pred]
-            print (mynet_name, y_pred_label)
             if mynet_name == basenet:
                 base_img_id = y_pred
                 
-            target_func = lambda x: utlC.forward_pass(mynet, x, img_size)             
-            print (y_pred_label)                     
+            target_func = lambda x: utlC.forward_pass(mynet, x, img_size)                               
             print ("doing test ...",  "file :", X_filenames[test_idx], ", net:", mynet_name, ", win_size:", win_size)
        
             start_time = time.time()
@@ -94,11 +91,11 @@ def PDA(mynets, basenet, img_size):
         CI.IoU_calculation(mynets, X_filenames[test_idx][:-3], predicted_labels, base_img_id, npz_dict, basenet)
     return
     
-
+basenet = 'M19'
 model_paths = glob.glob('./Pytorch_Models/*.ckpt')
 models = [model_path.split('/')[-1].split('.')[0] for model_path in model_paths]
 img_size = 224
-print ('Loaded models:', models)
-PDA(models, 'M19', img_size)
+print ('Loaded models:', models, 'basebet:', basenet)
+PDA(models, basenet, img_size)
 
         

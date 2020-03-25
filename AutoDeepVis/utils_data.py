@@ -66,7 +66,6 @@ def get_image_data(img_size = 224):
 
 
 def get_imagenet_classnames():
-    """ Returns the classnames of all 1000 ImageNet classes """
     return np.loadtxt(open(path_data+'/ilsvrc_2012_labels.txt'), dtype=object, delimiter='\n')
 
 def IoU(seg1, seg2):

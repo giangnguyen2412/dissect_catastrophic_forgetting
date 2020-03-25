@@ -56,12 +56,12 @@ def compare_basenet(basenet, model, npz_dict, Images_M19, img_id):
 
     
 def draw_vis(IOUs_dict, Images_dict, output_name, img_cat, predicted_label):
-    fig, axs = plt.subplots(2, 3)
-    for image in Images_dict:
+    fig, axs = plt.subplots(1, 5)
+    for image in Images_dict[:-1]:
         p = Images_dict[image].reshape(224, 224)    
-        axs[int(image/3), image%3].imshow(p, cmap=cm.seismic, vmin=-np.max(np.abs(p)), vmax=np.max(np.abs(p)), interpolation='nearest')
-        axs[int(image/3), image%3].set_title('Layer %s IoU: %.3f' % (image, IOUs_dict[image]))
-        axs[int(image/3), image%3].axis('off')
+        axs[1, image].imshow(p, cmap=cm.seismic, vmin=-np.max(np.abs(p)), vmax=np.max(np.abs(p)), interpolation='nearest')
+        axs[1, image].set_title('Block %s IoU: %.3f' % ((image+1), IOUs_dict[image]))
+        axs[1, image].axis('off')
     plt.savefig('./IOU_results/%s_%s_%s.jpg' % (img_cat, output_name, predicted_label))
     return 
 
