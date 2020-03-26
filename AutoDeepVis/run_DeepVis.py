@@ -32,11 +32,11 @@ import Calculate_IOUs as CI
 
 def PDA(mynets, basenet, img_size):
     test_indices = None
-    win_size = 5 
+    win_size = 10 
     overlapping = False
     num_samples = 10
     padding_size = 2            
-    batch_size = 32
+    batch_size = 12
     image_dims = (img_size, img_size)
 
     # get the data

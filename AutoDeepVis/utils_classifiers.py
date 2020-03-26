@@ -30,11 +30,11 @@ class EncoderCNN(nn.Module):
         super(EncoderCNN, self).__init__()
         resnet = models.resnet50(pretrained=True)
         modules = list(resnet.children())[:-1]      # delete the last fc layer.
-        conv1 = list(resnet.children())[:4]
-        conv2 = list(resnet.children())[:5]
-        conv3 = list(resnet.children())[:6]
-        conv4 = list(resnet.children())[:7]
-        conv5 = list(resnet.children())[:8]
+        conv1 = list(resnet.children())[:1]
+        conv2 = list(resnet.children())[:4]
+        conv3 = list(resnet.children())[:5]
+        conv4 = list(resnet.children())[:6]
+        conv5 = list(resnet.children())[:7]
 
         self.last_layer = list(resnet.children())[-1]    # input features to this layer
         self.conv1 = nn.Sequential(*conv1)
