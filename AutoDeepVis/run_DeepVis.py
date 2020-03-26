@@ -31,19 +31,17 @@ import Calculate_IOUs as CI
 
 
 def PDA(mynets, basenet, img_size):
-    test_indices = None
-    win_size = 10 
+    win_size = 5 
     overlapping = False
     num_samples = 10
     padding_size = 2            
-    batch_size = 12
+    batch_size = 32
     image_dims = (img_size, img_size)
 
     # get the data
     X_test, X_test_im, X_filenames = utlD.get_image_data()
     
-    if not test_indices:
-        test_indices = [i for i in range(X_test.shape[0])]
+    test_indices = [i for i in range(X_test.shape[0])]
     
     # make folder for saving the results if it doesn't exist       
     IOU_savepath = './IOU_results/' 
