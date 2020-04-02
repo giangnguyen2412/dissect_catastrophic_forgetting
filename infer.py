@@ -3,6 +3,9 @@ import json
 import torchvision.transforms as transforms
 import pickle
 import os
+import sys
+sys.path.insert(1, '/home/dexter/show_attend_tell/')
+import caption
 
 from PIL import Image
 from prepro.pick_image import class_dict, make_dir
@@ -26,6 +29,63 @@ def load_image(image_path, transform=None):
         image = transform(image).unsqueeze(0)
 
     return image
+
+
+def infer_caption_by_master(img_path, json_path, model, vocab_path, prediction_path, id2class_path):
+    """
+
+    :param img_path:
+    :param json_path:
+    :param model:
+    :param vocab_path:
+    :param prediction_path:
+    :param id2class_path:
+    :return:
+    """
+
+    model = '/home/dexter/show_attend_tell/BEST_checkpoint_coco_5_cap_per_img_5_min_word_freq.pth.tar'
+
+    # Load model
+    checkpoint = torch.load(model)
+    decoder = checkpoint['decoder']
+    decoder = decoder.to(device)
+    decoder.eval()
+    encoder = checkpoint['encoder']
+    encoder = encoder.to(device)
+    encoder.eval()
+
+    word_map = '/home/dexter/show_attend_tell/caption data/WORDMAP_coco_5_cap_per_img_5_min_word_freq.json'
+
+    # Load word map (word2ix)
+    with open(word_map, 'r') as j:
+        word_map = json.load(j)
+    rev_word_map = {v: k for k, v in word_map.items()}  # ix2word
+
+    annotation_path = json_path
+    with open(annotation_path) as json_file:
+        data = json.load(json_file)
+
+    images = data['images']
+
+    # Prediction for every class
+    prediction = []
+    # Prediction splitted by class
+    prediction_class = {}
+
+    img_num = len(images)
+    img_gray_num = 0
+    for i, img in enumerate(images, 1):
+        image_id = img['id']
+        path = img_path + img['file_name']
+        _, _, sentence = caption.caption_image_beam_search(rev_word_map, encoder, decoder, path, word_map, beam_size=3)
+        entry = {}
+        entry['image_id'] = image_id
+        entry['caption'] = sentence
+        prediction.append(entry)
+        if i%100 == 0:
+            print("Inferred on {}/{} images on test set".format(i, img_num))
+
+    return prediction
 
 
 def infer_caption(img_path, json_path, model, vocab_path, prediction_path, id2class_path):
@@ -93,7 +153,7 @@ def infer_caption(img_path, json_path, model, vocab_path, prediction_path, id2cl
         if image_tensor.size()[1] == 1:
             img_gray_num += 1
             continue
-        feature = encoder(image_tensor)
+        feature, _, _ = encoder(image_tensor)
         sampled_ids = decoder.sample(feature)
         sampled_ids = sampled_ids[0].cpu().numpy()  # (1, max_seq_length) -> (max_seq_length)
 
@@ -119,7 +179,7 @@ def infer_caption(img_path, json_path, model, vocab_path, prediction_path, id2cl
             prediction_class[image_class].append(entry)
 
         if i%100 == 0:
-            print("Tested on {}/{} images on test set".format(i, img_num))
+            print("Inferred on {}/{} images on test set".format(i, img_num))
 
     ''' Uncomment to support id2 class
     for class_name, prediction in prediction_class.items():
@@ -156,3 +216,9 @@ if __name__ == '__main__':
                   model=model, vocab_path=vocab_path,
                   prediction_path=prediction_path, id2class_path=None)
 
+    '''
+    infer_caption_by_master(img_path=img_path,
+                          json_path=json_path,
+                          model=model, vocab_path=vocab_path,
+                          prediction_path=prediction_path, id2class_path=None)
+    '''

@@ -176,7 +176,6 @@ class PredDiffAnalyser:
         x_new = np.zeros((self.tests_per_batch,self.num_samples,len(self.x.ravel())))
         x_new[:] = np.copy(self.x).ravel()[np.newaxis]
 
-#        for f in xrange(feature_sets.shape[0]):
         for f in range(len(feature_sets)):
             x_new[f, :, feature_sets[f].ravel()] = self.sampler.get_samples(feature_sets[f], self.x, self.num_samples).T
             
