@@ -157,8 +157,6 @@ def main(args):
                 for param in child.parameters():
                     param.requires_grad = False
 
-        for param in encoder.linear.parameters():
-            param.requires_grad = False
 
     #
     # Master option
@@ -448,7 +446,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_layers',  type=int, default=1, help='number of layers in lstm')
 
     parser.add_argument('--num_epochs',  type=int, default=50)
-    parser.add_argument('--batch_size',  type=int, default=128)
+    parser.add_argument('--batch_size',  type=int, default=32)
     parser.add_argument('--num_workers', type=int, default=2)
 
     parser.add_argument('--task_name',          type=str, default='2to21')
