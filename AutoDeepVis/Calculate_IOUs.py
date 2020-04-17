@@ -12,9 +12,11 @@ def IoU(seg1, seg2):
     IOU = overlap.sum()/float(union.sum())
     return IOU
 
+
 def get_block_output(npz, block):
     #block = 'arr_' + str(block)
     return npz[block]
+
 
 def match_best_IoU(base_map, maps):
     best_iou = 0
@@ -24,8 +26,9 @@ def match_best_IoU(base_map, maps):
             best_iou = iou
             best_m = m          
     return best_iou, best_m
-    
-def comapre_mask(model, npz_dict, mask):
+
+
+def compare(model, npz_dict, mask):
     Maps_IOU = {}
     Maps_image = {}     
     for block in range(5):
@@ -36,6 +39,7 @@ def comapre_mask(model, npz_dict, mask):
     
     print ('Finished comparing Ground truth and %s' % model)
     return Maps_IOU, Maps_image
+
 
 def compare_basenet(basenet, model, npz_dict, Images_basenet):
     Maps_IOU = {}
@@ -60,6 +64,7 @@ def draw_vis(IOUs_dict, Images_dict, output_name, img_cat):
         plt.savefig('./IOU_results/%s_%s_block%s .jpg' % (img_cat, output_name, (image+1)))
     return 
 
+
 def write_forgetting_layer(IOUs_dict, model_name, img_cat):
     forgetting_report = './IOU_results/forgetting_report.txt'
     slopes = []
@@ -77,7 +82,7 @@ def write_forgetting_layer(IOUs_dict, model_name, img_cat):
 
 def output_result(basenet, model_name, npz_dict, mask, img_cat, Images_basenet = None):
     
-    IOUs_dict, Images_dict = comapre_mask(model_name, npz_dict, mask)
+    IOUs_dict, Images_dict = compare(model_name, npz_dict, mask)
     draw_vis(IOUs_dict, Images_dict, model_name + '_GT', img_cat)
     if model_name != basenet:
         IOUs_dict, Images_dict = compare_basenet(basenet, model_name, npz_dict, Images_basenet)
@@ -86,6 +91,7 @@ def output_result(basenet, model_name, npz_dict, mask, img_cat, Images_basenet =
         return 
     else:
         return Images_dict
+
     
 def IoU_calculation(mynets, img_cat, npz_dict, basenet):
     mask = np.load('./data/%s.npy' % img_cat).reshape(224*224)

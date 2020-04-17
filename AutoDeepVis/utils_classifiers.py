@@ -30,7 +30,7 @@ class EncoderCNN(nn.Module):
         super(EncoderCNN, self).__init__()
         resnet = models.resnet50(pretrained=True)
         modules = list(resnet.children())[:-1]      # delete the last fc layer.
-        conv1 = list(resnet.children())[:1]
+        conv1 = list(resnet.children())[:0]
         conv2 = list(resnet.children())[:4]
         conv3 = list(resnet.children())[:5]
         conv4 = list(resnet.children())[:6]
@@ -44,7 +44,8 @@ class EncoderCNN(nn.Module):
         self.conv5 = nn.Sequential(*conv5)
         self.resnet = nn.Sequential(*modules)
         self.linear = nn.Linear(resnet.fc.in_features, 256)
-        self.bn = nn.BatchNorm1d(256, momentum = 0.01)       
+        self.bn = nn.BatchNorm1d(256, momentum = 0.01)
+
     def forward(self, images):
         features = self.resnet(images)
         feat1 = self.conv1(images)
@@ -55,7 +56,6 @@ class EncoderCNN(nn.Module):
         features = features.reshape(features.size(0), -1)
         last_feat = self.last_layer(features)
         return feat1, feat2, feat3, feat4, feat5, last_feat
-    
 
 
 def get_pytorchnet(netname):
@@ -68,7 +68,6 @@ def get_pytorchnet(netname):
     model.eval()
     return model
     
-
 
 def forward_pass(mynet, x, img_size = 224):
     img_shape = (3, img_size, img_size)

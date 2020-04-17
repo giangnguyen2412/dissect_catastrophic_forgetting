@@ -47,12 +47,11 @@ def PDA(mynets, basenet, img_size):
     IOU_savepath = './IOU_results/' 
     if not os.path.exists(IOU_savepath):
         os.makedirs(IOU_savepath)  
-		
+
     forgetting_report = './IOU_results/forgetting_report.txt'
     fp = open(forgetting_report , 'w')
     fp.write('Model\tInput_img\tForgetting_layer\n')
     fp.close()
-	
     npz_savepath = './npz_results/' 
     if not os.path.exists(npz_savepath):
         os.makedirs(npz_savepath)   
@@ -82,7 +81,8 @@ def PDA(mynets, basenet, img_size):
 
         CI.IoU_calculation(mynets, X_filenames[test_idx][:-3], npz_dict, basenet)
     return
-    
+
+
 basenet = 'M19'
 model_paths = glob.glob('./Pytorch_Models/*.ckpt')
 models = [model_path.split('/')[-1].split('.')[0] for model_path in model_paths]
@@ -90,4 +90,3 @@ img_size = 224
 print ('Loaded models:', models, 'basenet:', basenet)
 PDA(models, basenet, img_size)
 
-        

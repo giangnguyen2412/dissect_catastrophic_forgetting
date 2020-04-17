@@ -311,10 +311,7 @@ class cond_sampler_imagenet:
             samples[i][samples[i]>maxVals_sample] = maxVals_sample[samples[i]>maxVals_sample]    
                 
         return samples      
- 
- 
-#%%     
-        
+
         
 def save_minmax_values(mynet_name):
     '''
