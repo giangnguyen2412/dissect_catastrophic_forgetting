@@ -2,7 +2,7 @@
 """
 This code is completely copied from PDA toolbox, see
 https://github.com/lmzintgraf/DeepVis-PredDiff/blob/master/utils_sampling.py
-""""""
+"""
 
 import numpy as np
 import random
