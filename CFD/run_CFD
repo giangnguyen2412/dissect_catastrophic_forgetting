@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-This script is a modified version of Prediction Difference Analysiss (PDA): 
-from https://github.com/lmzintgraf/DeepVis-PredDiff/blob/master/experiments_imagenet.py
-originally made by Luisa M Zintgraf.
+This script is a modified version of Prediction Difference Analysiss (PDA), see this paper:
+"Visualizing Deep Neural Network Decisions: Prediction Difference Analysis" - Luisa M Zintgraf, Taco S Cohen, Tameem Adel, Max Welling
+
+Part of the codes are copied from PDA's tool box, see
+https://github.com/lmzintgraf/DeepVis-PredDiff 
 
 In CFD, this is made to tell the user which part of the model is forgetting the most after continuous learning.
 @Author: Shuan Chen

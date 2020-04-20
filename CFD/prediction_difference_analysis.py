@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-@author: Luisa Zintgraf
+This code is completely copied from PDA ttolbox, see
+https://github.com/lmzintgraf/DeepVis-PredDiff/blob/master/prediction_difference_analysis.py
 """
 
 import numpy as np
