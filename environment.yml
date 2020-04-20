@@ -1,4 +1,4 @@
-name: advanced_ml
+name: CFD
 channels:
   - defaults
 dependencies:
@@ -231,5 +231,5 @@ dependencies:
     - protobuf==3.11.3
     - pycocotools==2.0.0
     - tensorboardx==2.0
-prefix: /home/dexter/miniconda3/envs/advanced_ml
+prefix: /home/dexter/miniconda3/envs/cfd
 
