@@ -91,3 +91,210 @@ Example:
 python sample.py --model models/one/2to21/best/BEST_checkpoint_ms-coco.pth.tar --image png/cat2.jpg 
 --vocab data/vocab/2to21/vocab.pkl
 ```
+
+## Addition of one class 
+### Fine-tuning
+* Step 1: Create data for this task. In `prepro/`, run
+```bash
+bash process_data.sh 1 1
+```
+* Step 2: Train model. Fine-tune from model 2to21, then from $HOME run :
+```python3
+python train.py --task_type one --task_name 1 --fine_tuning
+```
+* Step 3: Infer captions to compute metrics by changing `infer` section in `config.yaml` file. Here we test this model on 2to21's test set:
+```yaml
+infer:
+  img_path: 'data/img/2to21/test/'                               # Image to be tested
+  json_path: 'data/annotations/2to21/captions_test.json'         # Annotations of images to be tested
+  model: 'models/one/1/best/BEST_checkpoint_ms-coco.pth.tar'     # Model to test
+  vocab_path: 'data/vocab/1/vocab.pkl'                           # Vocab corresponding to the model
+  prediction_path: 'infer/json/1_on_2to21/'                      # Test model 1 with fine-tuning on 2to21 test set
+  id2class_path: 'dataset/processed/id2class.json'               # Skip it
+```
+
+then run:
+
+```
+python infer.py
+```
+* Step 4: Compute metrics on the old task by using `coco-caption/cocoEvalCapDemo.ipynb`. Modify:
+```python3
+annFile = 'your_path_to_$HOME/data/annotations/2to21/captions_test.json'
+resFile = 'your_path_to_$HOME/infer/json/1_on_2to21/prediction.json'
+```
+* Step 5: Infer captions to compute metrics 1's test set:
+```yaml
+infer:
+  img_path: 'data/img/1/test/'                                   # Image to be tested
+  json_path: 'data/annotations/1/captions_test.json'             # Annotations of images to be tested
+  model: 'models/one/1/best/BEST_checkpoint_ms-coco.pth.tar'     # Model to test
+  vocab_path: 'data/vocab/1/vocab.pkl'                           # Vocab corresponding to the model
+  prediction_path: 'infer/json/1_on_1/'                          # Test model 1 with fine-tuning on 2to21 test set
+  id2class_path: 'dataset/processed/id2class.json'               # Skip it
+```
+
+then run:
+
+```
+python infer.py
+```
+* Step 6: Compute metrics on the new task by using `coco-caption/cocoEvalCapDemo.ipynb`. Modify:
+```python3
+annFile = 'your_path_to_$HOME/data/annotations/1/captions_test.json'
+resFile = 'your_path_to_$HOME/infer/json/1_on_1/prediction.json'
+```
+
+## Running of 5 classes sequentially
+Because the last model that we obtain is from task 44 (bottle), we have to run testing on test splits of whole 5 new classes - Smultiple.
+### Fine-tuning
+* Step 1: Create data for this task. In `prepro/`, run
+```bash
+bash process_data.sh dump seq
+```
+* Step 2: Train model. Fine-tune from model 2to21, then from $HOME run :
+```python3
+python train.py --task_type seq --fine_tuning
+```
+* Step 3: Infer captions to compute metrics by changing `infer` section in `config.yaml` file. Here we test this model on 2to21's test set. Because the last model that we obtain is from task 44 (bottle), so we will compute metrics using task 44's model:
+```yaml
+infer:
+  img_path: 'data/img/2to21/test/'                           
+  json_path: 'data/annotations/2to21/captions_test.json'      
+  model: 'models/seq/44_seq/best/BEST_checkpoint_ms-coco.pth.tar' 
+  vocab_path: 'data/vocab/44/vocab.pkl'                    
+  prediction_path: 'infer/json/44_seq_on_2to21/'                 
+  id2class_path: 'dataset/processed/id2class.json'                
+```
+
+then run:
+
+```
+python infer.py
+```
+* Step 4: Compute metrics on the old task by using `coco-caption/cocoEvalCapDemo.ipynb`. Modify:
+```python3
+annFile = 'your_path_to_$HOME/data/annotations/2to21/captions_test.json'
+resFile = 'your_path_to_$HOME/infer/json/44_seq_on_2to21/prediction.json'
+```
+* Step 5: Infer captions to compute metrics once's test set:
+```yaml
+infer:
+  img_path: 'data/img/once/test/'                                 
+  json_path: 'data/annotations/once/captions_test.json'             
+  model: 'models/seq/44_seq/best/BEST_checkpoint_ms-coco.pth.tar'   
+  vocab_path: 'data/vocab/44/vocab.pkl'                          
+  prediction_path: 'infer/json/44_seq_on_once/'                      
+  id2class_path: 'dataset/processed/id2class.json'               
+```
+
+then run:
+
+```
+python infer.py
+```
+* Step 6: Compute metrics on the new task by using `coco-caption/cocoEvalCapDemo.ipynb`. Modify:
+```python3
+annFile = 'your_path_to_$HOME/data/annotations/once/captions_test.json'
+resFile = 'your_path_to_$HOME/infer/json/44_seq_on_once/prediction.json'
+```
+
+### LwF
+* Step 2: Train model. Fine-tune from model 2to21, then from $HOME run :
+```python3
+python train.py --task_type seq --fine_tuning --lwf
+```
+* Step 3: Infer captions to compute metrics by changing `infer` section in `config.yaml` file. Here we test this model on 2to21's test set. Because the last model that we obtain is from task 44 (bottle), so we will compute metrics using task 44's model:
+```yaml
+infer:
+  img_path: 'data/img/2to21/test/'                             
+  json_path: 'data/annotations/2to21/captions_test.json'       
+  model: 'models/seq/44_lwf_seq/best/BEST_checkpoint_ms-coco.pth.tar' 
+  vocab_path: 'data/vocab/44/vocab.pkl'                      
+  prediction_path: 'infer/json/44_seq_on_2to21_lwf/'                  
+  id2class_path: 'dataset/processed/id2class.json'                 
+```
+
+then run:
+
+```
+python infer.py
+```
+* Step 4: Compute metrics on the old task by using `coco-caption/cocoEvalCapDemo.ipynb`. Modify:
+```python3
+annFile = 'your_path_to_$HOME/data/annotations/2to21/captions_test.json'
+resFile = 'your_path_to_$HOME/infer/json/44_seq_on_2to21_lwf/prediction.json'
+```
+* Step 5: Infer captions to compute metrics once's test set:
+```yaml
+infer:
+  img_path: 'data/img/once/test/'                         
+  json_path: 'data/annotations/once/captions_test.json'           
+  model: 'models/seq/44_lwf_seq/best/BEST_checkpoint_ms-coco.pth.tar'   
+  vocab_path: 'data/vocab/44/vocab.pkl'                       
+  prediction_path: 'infer/json/44_seq_on_once_lwf/'                         
+  id2class_path: 'dataset/processed/id2class.json'                
+```
+
+then run:
+
+```
+python infer.py
+```
+* Step 6: Compute metrics on the new task by using `coco-caption/cocoEvalCapDemo.ipynb`. Modify:
+```python3
+annFile = 'your_path_to_$HOME/data/annotations/once/captions_test.json'
+resFile = 'your_path_to_$HOME/infer/json/44_seq_on_once_lwf/prediction.json'
+```
+
+### Distillation
+* Step 2: Train model. Fine-tune from model 2to21, then from $HOME run :
+```python3
+python train.py --task_type seq --fine_tuning --kd1
+```
+or 
+```python3
+python train.py --task_type seq --fine_tuning --kd2
+```
+* Step 3: Infer captions to compute metrics by changing `infer` section in `config.yaml` file. Here we test this model on 2to21's test set. Because the last model that we obtain is from task 44 (bottle), so we will compute metrics using task 44's model:
+```yaml
+infer:
+  img_path: 'data/img/2to21/test/'                               
+  json_path: 'data/annotations/2to21/captions_test.json'      
+  model: 'models/seq/44_distill_seq/best/BEST_checkpoint_ms-coco.pth.tar' 
+  vocab_path: 'data/vocab/44/vocab.pkl'                      
+  prediction_path: 'infer/json/44_seq_on_2to21_distill/'                  
+  id2class_path: 'dataset/processed/id2class.json'               
+```
+
+then run:
+
+```
+python infer.py
+```
+* Step 4: Compute metrics on the old task by using `coco-caption/cocoEvalCapDemo.ipynb`. Modify:
+```python3
+annFile = 'your_path_to_$HOME/data/annotations/2to21/captions_test.json'
+resFile = 'your_path_to_$HOME/infer/json/44_seq_on_2to21_distill/prediction.json'
+```
+* Step 5: Infer captions to compute metrics once's test set:
+```yaml
+infer:
+  img_path: 'data/img/once/test/'                                 
+  json_path: 'data/annotations/once/captions_test.json'           
+  model: 'models/seq/44_distill_seq/best/BEST_checkpoint_ms-coco.pth.tar'    
+  vocab_path: 'data/vocab/44/vocab.pkl'                          
+  prediction_path: 'infer/json/44_seq_on_once_distill/'                         
+  id2class_path: 'dataset/processed/id2class.json'                  
+```
+
+then run:
+
+```
+python infer.py
+```
+* Step 6: Compute metrics on the new task by using `coco-caption/cocoEvalCapDemo.ipynb`. Modify:
+```python3
+annFile = 'your_path_to_$HOME/data/annotations/once/captions_test.json'
+resFile = 'your_path_to_$HOME/infer/json/44_seq_on_once_distill/prediction.json'
+```
