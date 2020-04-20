@@ -19,7 +19,7 @@ Experiments were done using ResNet50 and testing on MS-COCO dataset.
 
 ## Evaluate customed pytorch models
 * Step 1: Move your encoder model files (.ckpt) to `Pytorch_Models/` to visualize your models. 
-* Step 2: Change the arguement "basenet" to specify the reference model (the model does not show forgetting) and "img_shape" to your model input shape in "run_DeepVis.py".
+* Step 2: Change the arguement "basenet" to specify the reference model (the model does not show forgetting) and "img_shape" to your input image shape of your model in "run_DeepVis.py".
 
 ## Tested data
 In out experiments, tested data are downloaded from MS-COCO dataset.
@@ -37,7 +37,7 @@ python run_CFD.py
 
 ## Results
 The IoU results and forgetting report will be generated at `IoU_results/`.   
-The result format is [test_image]_[test_model]_[reference]_[visualized block].
+The result format is [test_image]\_[test_model]\_[reference]\_[visualized block].
   
 Example:  
 `airplane_M19_GT_block1` shows the IoU and feature map between best matching vision of the first block of model "M19" and "Ground Truth" tested on image "airplane".
