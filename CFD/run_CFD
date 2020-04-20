@@ -1,29 +1,25 @@
+# -*- coding: utf-8 -*-
 """
-From this script, experiments for ImageNet pictures can be started.
-See "configuration" below for the different possible settings.
-The results are saved automatically to the folder ./results
+This script is a modified version of Prediction Difference Analysiss (PDA): 
+from https://github.com/lmzintgraf/DeepVis-PredDiff/blob/master/experiments_imagenet.py
+originally made by Luisa M Zintgraf.
 
-It is recommended to run caffe in gpu mode when overlapping is set
-to True, otherwise the calculation will take a very long time.
-
-@author: Luisa M Zintgraf
+In CFD, this is made to tell the user which part of the model is forgetting the most after continuous learning.
+@Author: Shuan Chen
 """
 
-# the following is needed to avoid some error that can be thrown when 
-# using matplotlib.pyplot in a linux shell
 import matplotlib 
 matplotlib.use('Agg')   
 
-# standard imports
 import numpy as np
 import time
 import glob
 import os
 
-# most important script - relevance estimator
+# PDA, original coed from Luisa M Zintgraf
 from prediction_difference_analysis import PredDiffAnalyser
 
-# utilities
+# Import utilities 
 import utils_classifiers as utlC
 import utils_data as utlD
 import utils_sampling as utlS
@@ -31,6 +27,7 @@ import Calculate_IOUs as CI
 
 
 def PDA(mynets, basenet, img_size):
+    # Basic settings of PDA
     win_size = 5 
     overlapping = False
     num_samples = 10
@@ -38,12 +35,11 @@ def PDA(mynets, basenet, img_size):
     batch_size = 32
     image_dims = (img_size, img_size)
 
-    # get the data
+    # Get the image data
     X_test, X_test_im, X_filenames = utlD.get_image_data()
-    
     test_indices = [i for i in range(X_test.shape[0])]
     
-    # make folder for saving the results if it doesn't exist       
+    # Make folder for saving the results        
     IOU_savepath = './IOU_results/' 
     if not os.path.exists(IOU_savepath):
         os.makedirs(IOU_savepath)  
@@ -74,19 +70,23 @@ def PDA(mynets, basenet, img_size):
             print ("--- Total computation took {:.4f} minutes ---".format((time.time() - start_time)/60))
             
             np.savez(npz_savepath + mynet_name + '_' + X_filenames[test_idx] + '.npz', *pred_diff)      
-            
+             # Load the  previous made npz files instead doing PDA again
 #            loaded_npz = np.load(npz_savepath + mynet_name + '_' + X_filenames[test_idx] + '.npz', mmap_mode='r')            
 #            pred_diff= [loaded_npz['arr_0'], loaded_npz['arr_1'], loaded_npz['arr_2'], loaded_npz['arr_3'], loaded_npz['arr_4']]
             npz_dict[mynet_name] = pred_diff
-
+        # Calculate the IoU between model vision and reference vision
         CI.IoU_calculation(mynets, X_filenames[test_idx][:-3], npz_dict, basenet)
     return
 
-
+# Reference model (before forgetting)
 basenet = 'M19'
+# THe directory where your models locate
 model_paths = glob.glob('./Pytorch_Models/*.ckpt')
-models = [model_path.split('/')[-1].split('.')[0] for model_path in model_paths]
+
+# The image size input to the model
 img_size = 224
+
+models = [model_path.split('/')[-1].split('.')[0] for model_path in model_paths]
 print ('Loaded models:', models, 'basenet:', basenet)
 PDA(models, basenet, img_size)
 
