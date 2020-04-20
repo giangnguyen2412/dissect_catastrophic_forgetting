@@ -34,7 +34,7 @@ def PDA(mynets, basenet, img_size):
     overlapping = False
     num_samples = 10
     padding_size = 2            
-    batch_size = 32
+    batch_size = 12
     image_dims = (img_size, img_size)
 
     # Get the image data
@@ -46,10 +46,6 @@ def PDA(mynets, basenet, img_size):
     if not os.path.exists(IOU_savepath):
         os.makedirs(IOU_savepath)  
 
-    forgetting_report = './IOU_results/forgetting_report.txt'
-    fp = open(forgetting_report , 'w')
-    fp.write('Model\tInput_img\tForgetting_layer\n')
-    fp.close()
     npz_savepath = './npz_results/' 
     if not os.path.exists(npz_savepath):
         os.makedirs(npz_savepath)   
@@ -78,6 +74,7 @@ def PDA(mynets, basenet, img_size):
             npz_dict[mynet_name] = pred_diff
         # Calculate the IoU between model vision and reference vision
         CI.IoU_calculation(mynets, X_filenames[test_idx][:-3], npz_dict, basenet)
+    CI.conclude_reports()
     return
 
 # Reference model (before forgetting)

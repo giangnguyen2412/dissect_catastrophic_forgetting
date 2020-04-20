@@ -2,7 +2,7 @@ import numpy as np
 import glob
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
-
+import pandas as pd
 
 def IoU(seg1, seg2):
     seg1 = np.array(seg1.clip(min = 0), dtype=bool)
@@ -66,7 +66,7 @@ def draw_vis(IOUs_dict, Images_dict, output_name, img_cat):
 
 
 def write_forgetting_layer(IOUs_dict, model_name, img_cat):
-    forgetting_report = './IOU_results/forgetting_report.txt'
+    forgetting_report = './IOU_results/forgetting_report_%s.txt' % model_name
     slopes = []
     for layer in IOUs_dict.keys():
         if int(layer) != 4 and int(layer) != 5:
@@ -74,8 +74,15 @@ def write_forgetting_layer(IOUs_dict, model_name, img_cat):
             slopes.append(slope)
         else:
             slopes.append(0)
+
+    def find_min(slopes):
+        min_idx = list(np.argwhere(slopes == np.min(slopes))[:, 0])
+        return min_idx
+
     fp = open(forgetting_report , 'a')
-    fp.write('%s\t%s\t%s\n' %(model_name, img_cat, (np.argmin(slopes)+2)))
+    forget_blocks = find_min(slopes)
+    for block in forget_blocks:
+        fp.write('%s\t%s\n' %(img_cat, block + 2))
     fp.close()
     return
     
@@ -101,4 +108,30 @@ def IoU_calculation(mynets, img_cat, npz_dict, basenet):
     for mynet in testnets:
         output_result(basenet, mynet, npz_dict, mask, img_cat, Images_basenet)
     return
+
+def conclude_reports():
+    reports = glob.glob('./IOU_results/forgetting_report_*.txt')
+    def find_max(blocks):
+        blocks_count = [blocks.count(n) for n in set(blocks)]  
+        max_idx = list(np.argwhere(blocks_count == np.max(blocks_count))[:, 0])
+        forget_block = []
+        for idx in max_idx:
+            forget_block.append(list(set(blocks))[idx])
+        return forget_block
+
+    for report in reports:
+        blocks = []
+        fp = open(report, 'r')
+        for line in fp.readlines():
+            blocks.append(line.split('\t')[-1])
+        fp.close()
+        fp = open(report, 'a')
+        forget_blocks = find_max(blocks)
+        for block in forget_blocks:
+            fp.write('%s\t%s\n' %('The most forgetting block', block))
+        fp.close()
+    return 
+
+
+
 
