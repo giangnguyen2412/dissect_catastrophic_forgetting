@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-This code is completely copied from PDA ttolbox, see
+This code is completely copied from PDA toolbox, see
 https://github.com/lmzintgraf/DeepVis-PredDiff/blob/master/prediction_difference_analysis.py
 """
 
