@@ -19,7 +19,7 @@ Experiments were done using ResNet50 and testing on MS-COCO dataset.
 
 ## Evaluate customed pytorch models
 * Step 1: Move your encoder model files (.ckpt) to `Pytorch_Models/` to visualize your models. 
-* Step 2: Change the arguement "basenet" to specify the reference model (the model does not show forgetting) and "img_shape" to your input image shape of your model in "run_DeepVis.py".
+* Step 2: Change the arguement "basenet" to specify the reference model (the model does not show forgetting) and "img_shape" to your input image shape of your model in "run_CFD.py".
 
 ## Tested data
 In out experiments, tested data are downloaded from MS-COCO dataset.
