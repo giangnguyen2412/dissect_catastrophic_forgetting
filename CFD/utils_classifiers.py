@@ -1,14 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
 
-Utility methods for handling the classifiers:
-    set_caffe_mode(gpu)
-    get_caffenet(netname)
-    forward_pass(net, x, blobnames='prob', start='data')
-
-"""
-
-# this is to supress some unnecessary output of caffe in the linux console
 import os
 os.environ['GLOG_minloglevel'] = '2'
 
@@ -29,14 +20,14 @@ class EncoderCNN(nn.Module):
     def __init__(self):
         super(EncoderCNN, self).__init__()
         resnet = models.resnet50(pretrained=True)
-        modules = list(resnet.children())[:-1]      # delete the last fc layer.
+        modules = list(resnet.children())[:-1]      
         conv1 = list(resnet.children())[:0]
         conv2 = list(resnet.children())[:4]
         conv3 = list(resnet.children())[:5]
         conv4 = list(resnet.children())[:6]
         conv5 = list(resnet.children())[:7]
 
-        self.last_layer = list(resnet.children())[-1]    # input features to this layer
+        self.last_layer = list(resnet.children())[-1]  
         self.conv1 = nn.Sequential(*conv1)
         self.conv2 = nn.Sequential(*conv2)
         self.conv3 = nn.Sequential(*conv3)
@@ -62,8 +53,6 @@ def get_pytorchnet(netname):
     model = EncoderCNN()
     PATH = './Pytorch_Models/' + netname + '.ckpt'
     model.load_state_dict(torch.load(PATH), strict = False)
- #   model.avgpool = nn.AdaptiveAvgPool2d(1)
- #   model = models.resnet50(pretrained=True)
     model = model.cuda()
     model.eval()
     return model
@@ -71,7 +60,6 @@ def get_pytorchnet(netname):
 
 def forward_pass(mynet, x, img_size = 224):
     img_shape = (3, img_size, img_size)
-    # get input into right shape
     if np.ndim(x)==3:
         x = x[np.newaxis]
     if np.ndim(x)<4:
@@ -88,8 +76,6 @@ def forward_pass(mynet, x, img_size = 224):
 
     y6 = y[-1]
     y6 = torch.nn.functional.softmax(y6, dim = 1).data.cpu().numpy()
-    #print (np.max(y6[0]))
-    #print (y6.shape)
     returnVals = [y1, y2, y3, y4, y5, y6]
      
     return returnVals

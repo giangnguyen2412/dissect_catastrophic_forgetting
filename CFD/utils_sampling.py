@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Classes for (1) marginal and (2) conditional sampling for the IMAGENET data.
-
-Note that every sampler has to implement the method 
-    get_samples(sampleIndices, featVect, numSamples)
-
-"""
+This code is completely copied from PDA toolbox, see
+https://github.com/lmzintgraf/DeepVis-PredDiff/blob/master/utils_sampling.py
+""""""
 
 import numpy as np
 import random

@@ -9,15 +9,12 @@ path_data = "./data"
   
 def get_image_data(img_size = 224):
 
-    # get a list of all the images (note that we use networks trained on ImageNet data)
     img_list = os.listdir(path_data)
 
-    # throw away files that are not in the allowed format (png or jpg)
     for img_file in img_list[:]:
         if not (img_file.endswith(".png") or img_file.endswith(".jpg")):
             img_list.remove(img_file)
         
-    # fill up data matrix
     img_dim = (img_size, img_size)
     transform1 = transforms.Compose([                  
             transforms.Resize(256),             
@@ -46,7 +43,6 @@ def get_image_data(img_size = 224):
         else:
             print("Skipped ",img_list[i],", image dimensions were too small.")
 
-    # cast to image values that can be displayed directly with plt.imshow()
     X_im = np.uint8(np.array(X_im))
     
     X = np.array(X)
