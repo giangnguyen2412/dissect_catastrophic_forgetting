@@ -74,7 +74,7 @@ def main(args):
         decoder.embed = nn.Embedding(vocab_size, args.embed_size)
         decoder.linear = nn.Linear(args.hidden_size, vocab_size)
 
-        if args.freeze_cri or args.lwf:
+        if args.freeze_cri or args.lwf or args.distill:
             # Assign old neurons to the newly-initialized layer, fine-tuning only should ignore this
             print("Assigning old neurons of embedding and linear layer to new decoder...")
 
@@ -99,6 +99,10 @@ def main(args):
         args.task_name += '_freeze_cri'
     elif args.lwf:
         args.task_name += '_lwf'
+    elif args.distill and args.kd1:
+        args.task_name += '_kd1'
+    elif args.distill and args.kd2:
+        args.task_name += '_kd2'
 
     if args.task_type == 'seq':
         args.model_path = cfg['model']['model_path_format'].format(args.task_type, args.task_name + '_seq', 'models')
@@ -133,6 +137,38 @@ def main(args):
         train_json = args.caption_path + 'captions_train_lwf.json'
         with open(train_json, 'w') as file:
             json.dump(data, file)
+
+        # Knowledge distillation option
+    if args.distill:
+        print("Running knowledge distillation...")
+        # Teacher
+        teacher_cnn = checkpoint['encoder']
+        teacher_lstm = checkpoint['decoder']
+        teacher_cnn.train()
+        teacher_lstm.train()
+
+        # Initialize a totally new captioning model - Student
+        encoder = EncoderCNN(args.embed_size).to(device)
+        decoder = DecoderRNN(args.embed_size, args.hidden_size, len(vocab), args.num_layers).to(device)
+
+        # Student
+        student_cnn = encoder
+        student_lstm = decoder
+
+        # Move teacher to cuda
+        teacher_cnn.to(device)
+        teacher_lstm.to(device)
+
+        # Loss between GT caption and the prediction
+        criterion_lstm = nn.CrossEntropyLoss()
+        # Loss between predictions of teacher and student
+        criterion_distill = nn.MSELoss()
+
+        # Params of student
+        params_st = list(student_lstm.parameters()) + list(student_cnn.parameters())
+
+        optimizer_lstm = torch.optim.Adam(params_st, lr=1e-4)
+        optimizer_distill = torch.optim.Adam(student_cnn.parameters(), lr=1e-5)
 
     if args.freeze_enc:
         print("Freeze encoder technique!")
@@ -172,18 +208,36 @@ def main(args):
 
     for epoch in range(args.num_epochs):
 
-        train_step, train_loss_step = train(epoch, train_loader=train_loader,
-                                            encoder=encoder,
-                                            decoder=decoder,
-                                            criterion=criterion,
-                                            optimizer=optimizer,
-                                            first_training=True,
-                                            old_vocab_size=old_vocab_size)
-        # Validate after an epoch
-        recent_val_loss, val_step, val_loss_step = validate(epoch, val_loader=val_loader,
-                                                            encoder=encoder,
-                                                            decoder=decoder,
-                                                            criterion=criterion)
+        if args.distill:
+            print("Training with distillation option!")
+            train_step, train_loss_step = train_distill(epoch, train_loader=train_loader,
+                                                        student_cnn=student_cnn,
+                                                        student_lstm=student_lstm,
+                                                        teacher_cnn=teacher_cnn,
+                                                        teacher_lstm=teacher_lstm,
+                                                        criterion_lstm=criterion_lstm,
+                                                        criterion_distill=criterion_distill,
+                                                        optimizer_lstm=optimizer_lstm,
+                                                        optimizer_distill=optimizer_distill)
+            # Validate after an epoch
+            recent_val_loss, val_step, val_loss_step = validate(epoch, val_loader=val_loader,
+                                                                encoder=student_cnn,
+                                                                decoder=student_lstm,
+                                                                criterion=criterion)
+        else:
+
+            train_step, train_loss_step = train(epoch, train_loader=train_loader,
+                                                encoder=encoder,
+                                                decoder=decoder,
+                                                criterion=criterion,
+                                                optimizer=optimizer,
+                                                first_training=True,
+                                                old_vocab_size=old_vocab_size)
+            # Validate after an epoch
+            recent_val_loss, val_step, val_loss_step = validate(epoch, val_loader=val_loader,
+                                                                encoder=encoder,
+                                                                decoder=decoder,
+                                                                criterion=criterion)
         train_loss = np.average(train_loss_step)
         val_loss = np.average(val_loss_step)
 
@@ -251,6 +305,83 @@ def main(args):
             if early_stopping.early_stop:
                 print("Early Stopping!")
                 break
+
+
+def train_distill(epoch, train_loader, student_cnn, student_lstm, teacher_cnn, teacher_lstm,
+                  criterion_lstm, criterion_distill, optimizer_lstm, optimizer_distill):
+    """
+    Train function for distillation option
+    :param epoch: num of epoch for training
+    :param train_loader: training loader
+    :param student_cnn: student encoder
+    :param student_lstm: student decoder
+    :param teacher_cnn: teacher encoder
+    :param teacher_lstm: teacher decoder
+    :param criterion_lstm: normal loss calculation
+    :param criterion_distill: loss calculation for distill part
+    :param optimizer_lstm: normal optimizer
+    :param optimizer_distill: optimizer for distill part
+    :return:
+    """
+
+    step = []
+    loss_step = []
+    # Train mode on
+    total_step = len(train_loader)
+    student_cnn.to(device)
+    student_lstm.to(device)
+    student_cnn.train()
+    student_lstm.train()
+
+    for param in student_cnn.parameters():
+        param.requires_grad_(True)
+
+    for i, (images, captions, lengths) in enumerate(train_loader):
+        # Set mini-batch dataset
+        images = images.to(device)
+        captions = captions.to(device)
+        targets = pack_padded_sequence(captions, lengths, batch_first=True)[0]
+
+        # Forward, backward and optimize
+        optimizer_lstm.zero_grad()
+        optimizer_distill.zero_grad()
+
+        features_tr, _, _ = teacher_cnn(images)
+        features_st, _, _ = student_cnn(images)
+
+        outputs = student_lstm(features_st, captions, lengths)
+        outputs_tr = teacher_lstm(features_tr, captions, lengths)
+
+        # Add CNN distillation loss here
+        lstm_loss = criterion_lstm(outputs, targets)
+        if args.kd2:
+            dis_loss = criterion_distill(outputs, outputs_tr)
+            #print("Running KD2")
+        elif args.kd1:
+            dis_loss = criterion_distill(features_tr, features_st)
+            #print("Running KD1")
+        else:
+            assert False, "Choose KD1 or KD2 option! Terminating............"
+        loss = lstm_loss + dis_loss
+
+        loss.backward()
+
+        optimizer_lstm.step()
+        optimizer_distill.step()
+
+        # Print log info
+        if i % args.log_step == 0:
+            print('Training: Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, LSTM Loss: {:.4f}, Distillation Loss: {:.4f}'
+                  .format(epoch + 1, args.num_epochs, i, total_step, loss.item(), lstm_loss.item(), dis_loss.item()))
+            step.append(i)
+            loss_step.append(loss.item())
+
+    torch.save(student_lstm.state_dict(), os.path.join(
+        args.model_path, 'decoder-{}.ckpt'.format(epoch + 1)))
+    torch.save(student_cnn.state_dict(), os.path.join(
+        args.model_path, 'encoder-{}.ckpt'.format(epoch + 1)))
+
+    return step, loss_step
 
 
 def train(epoch, train_loader, encoder, decoder, criterion, optimizer, first_training, old_vocab_size):
@@ -374,6 +505,9 @@ if __name__ == '__main__':
     parser.add_argument('--freeze_dec',  action="store_true", help="use Freezing the decoder")
     parser.add_argument('--freeze_cri',  action="store_true", help="use Critical Freezing method")
     parser.add_argument('--lwf',         action="store_true", help="use Learning without forgetting")
+    parser.add_argument('--distill',     action="store_true", help="use KD")
+    parser.add_argument('--kd1',         action="store_true", help="use Knowledge distillation on intermediate space")
+    parser.add_argument('--kd2',         action="store_true", help="use Knowledge distillation on output layer")
 
     # As Karpathy, 3e-4 is the best learning rate for Adam
     parser.add_argument('--learning_rate', type=float, default=5e-4)
@@ -403,6 +537,12 @@ if __name__ == '__main__':
                 elif args.lwf:
                     args.check_point = cfg['model']['check_point_format_seq'].format(
                         task_list[i - 1] + '_lwf_seq')
+                elif args.kd1:
+                    args.check_point = cfg['model']['check_point_format_seq'].format(
+                        task_list[i - 1] + '_kd1_seq')
+                elif args.kd2:
+                    args.check_point = cfg['model']['check_point_format_seq'].format(
+                        task_list[i - 1] + '_kd2_seq')
 
                 args.check_point_vocab = cfg['dataset']['vocab_format'].format(task_list[i-1])
             args.task_name = task_name
