@@ -1,4 +1,7 @@
 # Catastrophic forgetting dissector
+[pdf_paper_v1](https://arxiv.org/abs/2001.01578)
+[pdf_paper_v2](https://arxiv.org/abs/2005.01004)
+
 *Code is tested on python3.6, pytorch 1.0.1 cuda9.0.0_cudnn7.6.4, and jupyter 1.0.0*
 # Dependencies
 Packages needed to run is in `environment.yml`. Create a virtual environment to run this, (optionally rename the environment's name by tweaking the YML file). 
