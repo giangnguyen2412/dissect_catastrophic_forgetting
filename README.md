@@ -1,4 +1,4 @@
-# Catastrophic forgetting dissector
+# Catastrophic forgetting dissector (Explaining How Deep Neural Networks Forget by Deep Visualization)
 [pdf_paper_v1](https://arxiv.org/abs/2001.01578)
 [pdf_paper_v2](https://arxiv.org/abs/2005.01004)
 
