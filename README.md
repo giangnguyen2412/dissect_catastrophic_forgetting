@@ -3,6 +3,21 @@
 [pdf_paper_v2](https://arxiv.org/abs/2005.01004)
 
 *Code is tested on python3.6, pytorch 1.0.1 cuda9.0.0_cudnn7.6.4, and jupyter 1.0.0*
+
+# Citation
+If you find our work useful in your research, please consider citing:
+
+```
+@inproceedings{nguyen2021explaining,
+  title={Explaining how deep neural networks forget by deep visualization},
+  author={Nguyen, Giang and Chen, Shuan and Jun, Tae Joon and Kim, Daeyoung},
+  booktitle={International Conference on Pattern Recognition},
+  pages={162--173},
+  year={2021},
+  organization={Springer}
+}
+```
+
 # Dependencies
 Packages needed to run is in `environment.yml`. Create a virtual environment to run this, (optionally rename the environment's name by tweaking the YML file). 
 
